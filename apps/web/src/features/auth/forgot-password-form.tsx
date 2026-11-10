@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
   Form,
+  FormError,
   FormControl,
   FormField,
   FormItem,
@@ -20,9 +21,8 @@ import {
   FormMessage,
   Input,
 } from "@components";
-import { useForgotPassword } from "@services";
+import { describeApiError, useForgotPassword } from "@services";
 import { Link } from "@/i18n/navigation";
-import { FormError } from "./form-error";
 
 export function ForgotPasswordForm() {
   const t = useTranslations("auth");
@@ -61,7 +61,7 @@ export function ForgotPasswordForm() {
                 )}
               />
             )}
-            <FormError error={forgot.error} fallback={common("somethingWentWrong")} />
+            <FormError error={describeApiError(forgot.error, common("somethingWentWrong"))} />
           </CardContent>
           <CardFooter className="flex-col gap-3">
             {!forgot.isSuccess ? (

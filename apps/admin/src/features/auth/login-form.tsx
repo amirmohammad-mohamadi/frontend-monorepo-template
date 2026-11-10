@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
   Form,
+  FormError,
   FormControl,
   FormField,
   FormItem,
@@ -21,10 +22,9 @@ import {
   Input,
   PasswordInput,
 } from "@components";
-import { useLogin } from "@services";
+import { describeApiError, useLogin } from "@services";
 import { getSafeNextPath } from "@utils";
 import { TEXTS } from "@/texts";
-import { FormError } from "./form-error";
 
 export function LoginForm() {
   const t = TEXTS.auth;
@@ -78,7 +78,7 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <FormError error={login.error} fallback={TEXTS.common.somethingWentWrong} />
+            <FormError error={describeApiError(login.error, TEXTS.common.somethingWentWrong)} />
             <Button type="submit" className="w-full" disabled={login.isPending}>
               {t.submit}
             </Button>

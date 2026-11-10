@@ -50,6 +50,10 @@ Typecheck is `tsc -b` per project (libs first, then each app); there is no Nx ty
 
 After adding a new cross-lib import, run `npx nx sync` so the TypeScript project references follow; the production build refuses to run while they are stale.
 
+## Shared between the apps
+
+Both apps are thin: the transport comes from `installApiTransport` (`@services`), form errors from `describeApiError` (`@services`) rendered by `FormError` (`@components`), the theme switch from `ThemeToggle` (`@components`) with translated labels, and the development error reporter from `consoleErrorReporter` (`@utils`). A third app reuses them the same way; do not copy them into an app.
+
 ## Adding things
 
 - **A domain**: `npm run generate:domain -- <name>`, then fill the DTO fields, the model getters and the admin table columns. Read the `example` domain for the finished shape.

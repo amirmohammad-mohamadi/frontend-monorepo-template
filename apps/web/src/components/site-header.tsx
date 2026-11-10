@@ -1,8 +1,8 @@
 import { useTranslations } from "next-intl";
 import { Logo } from "@assets";
+import { ThemeToggle } from "@components";
 import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "./locale-switcher";
-import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 
 export function SiteHeader() {
@@ -23,7 +23,14 @@ export function SiteHeader() {
         </nav>
         <div className="ms-auto flex items-center gap-1">
           <LocaleSwitcher />
-          <ThemeToggle />
+          <ThemeToggle
+            labels={{
+              theme: t("common.theme"),
+              light: t("common.themeLight"),
+              dark: t("common.themeDark"),
+              system: t("common.themeSystem"),
+            }}
+          />
           <UserMenu />
         </div>
       </div>

@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
   Form,
+  FormError,
   FormControl,
   FormField,
   FormItem,
@@ -21,9 +22,8 @@ import {
   Input,
   PasswordInput,
 } from "@components";
-import { useRegister } from "@services";
+import { describeApiError, useRegister } from "@services";
 import { Link } from "@/i18n/navigation";
-import { FormError } from "./form-error";
 import { useAfterSignIn } from "./use-after-sign-in";
 
 export function SignupForm() {
@@ -95,7 +95,7 @@ export function SignupForm() {
             />
             {passwordField("password", t("password"), "new-password")}
             {passwordField("password_confirmation", t("passwordConfirmation"), "new-password")}
-            <FormError error={register.error} fallback={common("somethingWentWrong")} />
+            <FormError error={describeApiError(register.error, common("somethingWentWrong"))} />
           </CardContent>
           <CardFooter className="flex-col gap-3">
             <Button type="submit" className="w-full" disabled={register.isPending}>

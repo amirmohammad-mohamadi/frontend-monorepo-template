@@ -1,4 +1,4 @@
-import { setErrorReporter, type ErrorReporter } from "@utils";
+import { consoleErrorReporter, setErrorReporter, type ErrorReporter } from "@utils";
 
 /**
  * The observability integration point. The starter ships no vendor: until a
@@ -17,11 +17,7 @@ export function installErrorReporter(reporter: ErrorReporter | null): void {
   setErrorReporter(reporter);
 }
 
-/** Development only: log reported errors to the console so they are not lost silently. */
+/** Development only: print reported errors to the console so they are not lost silently. */
 export function installDevelopmentReporter(): void {
-  if (process.env.NODE_ENV !== "development") return;
-  installErrorReporter({
-    captureException: (error, context) => console.warn("[error-reporting]", error, context ?? ""),
-    setUser: () => undefined,
-  });
+  if (process.env.NODE_ENV === "development") installErrorReporter(consoleErrorReporter);
 }

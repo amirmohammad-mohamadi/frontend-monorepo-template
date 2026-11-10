@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
   Form,
+  FormError,
   FormControl,
   FormField,
   FormItem,
@@ -19,9 +20,8 @@ import {
   FormMessage,
   Input,
 } from "@components";
-import { useForgotPassword } from "@services";
+import { describeApiError, useForgotPassword } from "@services";
 import { TEXTS } from "@/texts";
-import { FormError } from "./form-error";
 
 export function ForgotPasswordForm() {
   const t = TEXTS.auth;
@@ -56,7 +56,7 @@ export function ForgotPasswordForm() {
                     </FormItem>
                   )}
                 />
-                <FormError error={forgot.error} fallback={TEXTS.common.somethingWentWrong} />
+                <FormError error={describeApiError(forgot.error, TEXTS.common.somethingWentWrong)} />
                 <Button type="submit" className="w-full" disabled={forgot.isPending}>
                   {t.submitForgot}
                 </Button>

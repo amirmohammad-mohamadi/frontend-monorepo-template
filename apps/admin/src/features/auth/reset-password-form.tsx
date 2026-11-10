@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
   Form,
+  FormError,
   FormControl,
   FormField,
   FormItem,
@@ -21,9 +22,8 @@ import {
   Input,
   PasswordInput,
 } from "@components";
-import { useResetPassword } from "@services";
+import { describeApiError, useResetPassword } from "@services";
 import { TEXTS } from "@/texts";
-import { FormError } from "./form-error";
 
 /** Step two of the password reset; a successful reset signs the operator in. */
 export function ResetPasswordForm() {
@@ -93,7 +93,7 @@ export function ResetPasswordForm() {
             />
             {passwordField("password", t.newPassword)}
             {passwordField("password_confirmation", t.passwordConfirmation)}
-            <FormError error={reset.error} fallback={TEXTS.common.somethingWentWrong} />
+            <FormError error={describeApiError(reset.error, TEXTS.common.somethingWentWrong)} />
             <Button type="submit" className="w-full" disabled={reset.isPending}>
               {t.submitReset}
             </Button>

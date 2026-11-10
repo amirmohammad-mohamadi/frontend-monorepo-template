@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
   Form,
+  FormError,
   FormControl,
   FormField,
   FormItem,
@@ -22,9 +23,8 @@ import {
   Input,
   PasswordInput,
 } from "@components";
-import { useResetPassword } from "@services";
+import { describeApiError, useResetPassword } from "@services";
 import { Link } from "@/i18n/navigation";
-import { FormError } from "./form-error";
 import { useAfterSignIn } from "./use-after-sign-in";
 
 /** Step two of the password reset: token and email come from the link, the user types the new password. */
@@ -103,7 +103,7 @@ export function ResetPasswordForm() {
             />
             {passwordField("password", t("newPassword"))}
             {passwordField("password_confirmation", t("passwordConfirmation"))}
-            <FormError error={reset.error} fallback={common("somethingWentWrong")} />
+            <FormError error={describeApiError(reset.error, common("somethingWentWrong"))} />
           </CardContent>
           <CardFooter className="flex-col gap-3">
             <Button type="submit" className="w-full" disabled={reset.isPending}>

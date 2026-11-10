@@ -14,6 +14,7 @@ import {
   CardTitle,
   Checkbox,
   Form,
+  FormError,
   FormControl,
   FormField,
   FormItem,
@@ -22,9 +23,8 @@ import {
   Input,
   PasswordInput,
 } from "@components";
-import { useLogin } from "@services";
+import { describeApiError, useLogin } from "@services";
 import { Link } from "@/i18n/navigation";
-import { FormError } from "./form-error";
 import { useAfterSignIn } from "./use-after-sign-in";
 
 export function LoginForm() {
@@ -95,7 +95,7 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
-            <FormError error={login.error} fallback={common("somethingWentWrong")} />
+            <FormError error={describeApiError(login.error, common("somethingWentWrong"))} />
             <p className="text-muted-foreground text-xs" dir="ltr">
               {t("mockHint", { email: "user@example.com", password: "password" })}
             </p>

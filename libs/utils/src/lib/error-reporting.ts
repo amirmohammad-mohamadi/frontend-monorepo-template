@@ -64,6 +64,16 @@ export function captureError(error: unknown, context?: Record<string, unknown>):
   if (state.pending.push({ error, context }) > MAX_PENDING_REPORTS) state.pending.shift();
 }
 
+/**
+ * A reporter for development that prints reports to the console, so nothing
+ * is lost silently before a vendor is wired. Install it only when
+ * `NODE_ENV === "development"`; never in production.
+ */
+export const consoleErrorReporter: ErrorReporter = {
+  captureException: (error, context) => console.warn("[error-reporting]", error, context ?? ""),
+  setUser: () => undefined,
+};
+
 /** Tags later reports with the signed-in user's id only, or clears it with `null`. */
 export function setErrorReportingUser(id: string | null): void {
   state.user = id === null ? null : { id };
