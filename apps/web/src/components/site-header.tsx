@@ -15,9 +15,11 @@ export function SiteHeader() {
           {t("common.appName")}
         </Link>
         <nav className="hidden items-center gap-4 text-sm sm:flex" aria-label="Main">
+          {/* example-domain:start */}
           <Link href="/examples" className="text-muted-foreground hover:text-foreground">
             {t("nav.examples")}
           </Link>
+          {/* example-domain:end */}
         </nav>
         <div className="ms-auto flex items-center gap-1">
           <LocaleSwitcher />

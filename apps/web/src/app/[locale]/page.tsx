@@ -16,13 +16,13 @@ function Home() {
       <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{t("title")}</h1>
       <p className="text-muted-foreground mx-auto mt-4 max-w-xl text-lg">{t("subtitle")}</p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
+        {/* example-domain:start */}
         <Button asChild>
           <Link href="/examples">{t("viewExamples")}</Link>
         </Button>
+        {/* example-domain:end */}
         <Button variant="outline" asChild>
-          <a href="https://github.com" rel="noreferrer">
-            {t("readDocs")}
-          </a>
+          <Link href="/account">{t("yourAccount")}</Link>
         </Button>
       </div>
     </section>

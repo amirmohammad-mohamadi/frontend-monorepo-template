@@ -1,19 +1,25 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@components";
-import { useCurrentUser, useExamples } from "@services";
+import { useCurrentUser } from "@services";
+// example-domain:start
+import { useExamples } from "@services";
+// example-domain:end
 import { PageHeader } from "@/components/page-header";
 import { TEXTS, fill } from "@/texts";
 
 export function Overview() {
   const { user } = useCurrentUser();
-  const examples = useExamples({ per_page: 1 });
   const t = TEXTS.overview;
+  // example-domain:start
+  const examples = useExamples({ per_page: 1 });
+  // example-domain:end
 
   return (
     <>
       <PageHeader title={t.title} subtitle={user ? fill(t.welcome, { name: user.getDisplayName() }) : t.subtitle} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* example-domain:start */}
         <Card>
           <CardHeader>
             <CardDescription>{t.cards.examples}</CardDescription>
@@ -22,6 +28,7 @@ export function Overview() {
             </CardTitle>
           </CardHeader>
         </Card>
+        {/* example-domain:end */}
         <Card>
           <CardHeader>
             <CardDescription>{t.cards.session}</CardDescription>

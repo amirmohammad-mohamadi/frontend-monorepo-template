@@ -14,11 +14,6 @@ test.describe("web", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "fa");
   });
 
-  test("examples list loads from the mock API", async ({ page }) => {
-    await page.goto(`${WEB}/en/examples`);
-    await expect(page.getByRole("list").getByRole("listitem").first()).toBeVisible();
-  });
-
   test("a protected page redirects to sign-in, and signing in opens it", async ({ page }) => {
     await page.goto(`${WEB}/en/account`);
     await expect(page).toHaveURL(/\/en\/login\?next=/);
@@ -28,27 +23,33 @@ test.describe("web", () => {
     await expect(page).toHaveURL(/\/en\/account$/);
     await expect(page.getByText("user@example.com")).toBeVisible();
   });
+
+  test("the reset-password link sets a new password and signs the user in", async ({ page }) => {
+    await page.goto(`${WEB}/en/reset-password?token=mock-reset-token&email=user%40example.com`);
+    await expect(page.getByLabel("Email")).toHaveValue("user@example.com");
+    // The mock accepts the same password again, which keeps the other tests' credentials valid.
+    await page.getByLabel("New password", { exact: true }).fill("password");
+    await page.getByLabel("Confirm password").fill("password");
+    await page.getByRole("button", { name: "Set new password" }).click();
+    await expect(page).toHaveURL(/\/en\/account$/);
+  });
+
+  test("the proxy refuses a path outside its allow-list, encoded or not", async ({ request }) => {
+    for (const path of ["api/v1/admin/me", "api/v1/examples/..%2fadmin/me", "api/v1/examples/%2e%2e/admin/me"]) {
+      const response = await request.get(`${WEB}/api/backend/${path}`);
+      expect(response.status(), path).toBe(404);
+    }
+  });
 });
 
 test.describe("admin", () => {
-  test("sign in, see the examples table, create and delete an entry", async ({ page }) => {
-    await page.goto(`${ADMIN}/examples`);
+  test("sign in and reach the overview", async ({ page }) => {
+    await page.goto(`${ADMIN}/settings`);
     await expect(page).toHaveURL(/\/login\?next=/);
     await page.getByLabel("Email").fill("admin@example.com");
     await page.getByLabel("Password", { exact: true }).fill("password");
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page).toHaveURL(/\/examples$/);
-    await expect(page.getByRole("table")).toBeVisible();
-
-    await page.getByRole("button", { name: "New example" }).click();
-    await page.getByLabel("Title").fill("Created by smoke test");
-    await page.getByRole("button", { name: "Save" }).click();
-    await expect(page.getByRole("cell", { name: "Created by smoke test" })).toBeVisible();
-
-    const row = page.getByRole("row", { name: /Created by smoke test/ });
-    await row.getByRole("button", { name: "Actions" }).click();
-    await page.getByRole("menuitem", { name: "Delete" }).click();
-    await page.getByRole("button", { name: "Delete" }).click();
-    await expect(page.getByRole("cell", { name: "Created by smoke test" })).toHaveCount(0);
+    await expect(page).toHaveURL(/\/settings$/);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 });
