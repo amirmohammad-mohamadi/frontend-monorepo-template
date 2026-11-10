@@ -2,7 +2,7 @@
 
 import { LanguagesIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Button,
   DropdownMenu,
@@ -10,16 +10,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components";
+import { switchLocaleInPath } from "@utils";
 import { LOCALE_LABELS, LOCALES } from "@/i18n/locales";
-import { usePathname, useRouter } from "@/i18n/navigation";
 
-/** Switches the locale segment of the current URL; the cookie follows through next-intl. */
+/**
+ * Switches the locale segment of the current URL (query and hash kept); the
+ * locale cookie follows through next-intl's middleware on the next request.
+ */
 export function LocaleSwitcher() {
   const t = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const params = useParams();
+
+  const switchTo = (code: string) => {
+    const { search, hash } = window.location;
+    router.replace(`${switchLocaleInPath(pathname, code, LOCALES)}${search}${hash}`);
+  };
 
   return (
     <DropdownMenu>
@@ -30,17 +37,7 @@ export function LocaleSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {LOCALES.map((code) => (
-          <DropdownMenuItem
-            key={code}
-            disabled={code === locale}
-            onSelect={() =>
-              router.replace(
-                // @ts-expect-error next-intl types the pathname per route; this switcher is route-agnostic.
-                { pathname, params },
-                { locale: code }
-              )
-            }
-          >
+          <DropdownMenuItem key={code} disabled={code === locale} onSelect={() => switchTo(code)}>
             {LOCALE_LABELS[code]}
           </DropdownMenuItem>
         ))}

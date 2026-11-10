@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createEnv } from "@utils";
+import { LOCALES } from "@/i18n/locales";
 
 /**
  * Every environment variable the web app reads, validated once at module
@@ -11,12 +12,17 @@ export const env = createEnv(
   z.object({
     NEXT_PUBLIC_API_BASE_URL: z.url().default("http://localhost:4000"),
     INTERNAL_API_BASE_URL: z.url().default("http://localhost:4000"),
-    NEXT_PUBLIC_DEFAULT_LOCALE: z.string().default("en"),
+    NEXT_PUBLIC_DEFAULT_LOCALE: z.enum(LOCALES).default(LOCALES[0]),
     NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
     WEB_PROXY_PREFIXES: z
       .string()
-      .default("/api/v1/me,/api/v1/account,/api/v1/examples")
-      .transform((value) => value.split(",").map((p) => p.trim()).filter(Boolean)),
+      .default("/api/v1/me,/api/v1/examples")
+      .transform((value) =>
+        value
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean)
+      ),
     AUTH_COOKIE_SECURE: z
       .enum(["true", "false", ""])
       .optional()
