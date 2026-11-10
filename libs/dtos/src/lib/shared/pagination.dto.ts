@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SortDirection } from "@enums";
 
 /** Query parameters of every paginated list request. */
 export const paginationQuerySchema = z.object({
@@ -12,7 +13,7 @@ export type PaginationQueryDto = z.infer<typeof paginationQuerySchema>;
 export const listQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().max(200).optional(),
   sort: z.string().max(100).optional(),
-  direction: z.enum(["asc", "desc"]).optional(),
+  direction: z.enum([SortDirection.Asc, SortDirection.Desc]).optional(),
 });
 
 export type ListQueryDto = z.infer<typeof listQuerySchema>;

@@ -3,6 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import type { SessionUserDto } from "@dtos";
 import { UserModel } from "@models";
+import { setErrorReportingUser } from "@utils";
 import { ApiClientError } from "../shared/api-errors";
 import { useMutation } from "../shared/hooks/use-mutation";
 import { useQuery } from "../shared/hooks/use-query";
@@ -20,7 +21,11 @@ type SessionAnswer = { user: SessionUserDto | null };
 export function useCurrentUser(options: { enabled?: boolean } = {}) {
   const query = useQuery<SessionAnswer | null, ApiClientError, UserModel | null>({
     queryKey: authQueryKeys.me(),
-    queryFn: () => authApi.me(),
+    queryFn: async () => {
+      const answer = await authApi.me();
+      setErrorReportingUser(answer.user ? String(answer.user.id) : null);
+      return answer;
+    },
     select: (data) => (data?.user ? new UserModel(data.user) : null),
     staleTime: 60 * 1000,
     enabled: options.enabled,
@@ -33,6 +38,7 @@ function useSetSession() {
   const queryClient = useQueryClient();
   return (answer: SessionAnswer | null) => {
     queryClient.setQueryData(authQueryKeys.me(), answer);
+    setErrorReportingUser(answer?.user ? String(answer.user.id) : null);
     if (answer === null) queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "auth" });
   };
 }

@@ -15,7 +15,11 @@ export type ErrorReporter = {
 };
 
 /** Digests Next.js attaches to thrown navigation control flow (`notFound()`, `redirect()`); not errors. */
-const NEXT_CONTROL_FLOW_DIGESTS = [/^NEXT_NOT_FOUND$/, /^NEXT_HTTP_ERROR_FALLBACK;404$/, /^NEXT_REDIRECT/];
+const NEXT_CONTROL_FLOW_DIGESTS = [
+  /^NEXT_NOT_FOUND$/,
+  /^NEXT_HTTP_ERROR_FALLBACK;404$/,
+  /^NEXT_REDIRECT/,
+];
 
 /**
  * Whether an error is worth reporting: not Next.js control flow, and not a
@@ -26,9 +30,15 @@ const NEXT_CONTROL_FLOW_DIGESTS = [/^NEXT_NOT_FOUND$/, /^NEXT_HTTP_ERROR_FALLBAC
 export function isReportableError(error: unknown): boolean {
   if (!error || typeof error !== "object") return true;
   const digest = (error as { digest?: unknown }).digest;
-  if (typeof digest === "string" && NEXT_CONTROL_FLOW_DIGESTS.some((p) => p.test(digest))) return false;
+  if (typeof digest === "string" && NEXT_CONTROL_FLOW_DIGESTS.some((p) => p.test(digest)))
+    return false;
   const statusCode = (error as { statusCode?: unknown }).statusCode;
-  if (typeof statusCode === "number" && statusCode >= 400 && statusCode < 500 && statusCode !== 403) {
+  if (
+    typeof statusCode === "number" &&
+    statusCode >= 400 &&
+    statusCode < 500 &&
+    statusCode !== 403
+  ) {
     return false;
   }
   return true;
@@ -51,7 +61,8 @@ export function setErrorReporter(reporter: ErrorReporter | null): void {
   state.reporter = reporter;
   if (!reporter) return;
   if (state.user !== undefined) reporter.setUser(state.user);
-  for (const { error, context } of state.pending.splice(0)) reporter.captureException(error, context);
+  for (const { error, context } of state.pending.splice(0))
+    reporter.captureException(error, context);
 }
 
 /** Reports an error with optional structured context. No-op for expected outcomes (`isReportableError`) and without a reporter. */

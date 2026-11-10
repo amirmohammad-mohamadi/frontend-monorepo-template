@@ -1,5 +1,6 @@
 /** A letter of a right-to-left script (Arabic, Hebrew, Syriac, Thaana); digits do not count. */
-const RTL_LETTER = /(?=[\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Syriac}\p{Script=Thaana}])\p{L}/u;
+const RTL_LETTER =
+  /(?=[\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Syriac}\p{Script=Thaana}])\p{L}/u;
 
 /** The first letter of a text, which `dir="auto"` takes the direction from. */
 const FIRST_LETTER = /\p{L}/u;

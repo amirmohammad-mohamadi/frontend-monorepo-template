@@ -27,6 +27,8 @@ describe("switchLocaleInPath", () => {
 
 describe("objectToSearchParams", () => {
   it("skips null and undefined values", () => {
-    expect(objectToSearchParams({ a: 1, b: null, c: undefined, d: "x" }).toString()).toBe("a=1&d=x");
+    expect(objectToSearchParams({ a: 1, b: null, c: undefined, d: "x" }).toString()).toBe(
+      "a=1&d=x"
+    );
   });
 });

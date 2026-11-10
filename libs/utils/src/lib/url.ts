@@ -34,8 +34,13 @@ export function localizeHref(href: string, locale: string, locales: readonly str
  * Swaps the locale segment of a localized pathname: `/en/about` on `fa`
  * becomes `/fa/about`. A pathname without a known locale segment is prefixed.
  */
-export function switchLocaleInPath(pathname: string, locale: string, locales: readonly string[]): string {
+export function switchLocaleInPath(
+  pathname: string,
+  locale: string,
+  locales: readonly string[]
+): string {
   const [, first = "", ...rest] = pathname.split("/");
-  if (locales.includes(first)) return `/${[locale, ...rest].join("/")}`.replace(/\/$/, "") || `/${locale}`;
+  if (locales.includes(first))
+    return `/${[locale, ...rest].join("/")}`.replace(/\/$/, "") || `/${locale}`;
   return localizeHref(pathname, locale, locales);
 }
