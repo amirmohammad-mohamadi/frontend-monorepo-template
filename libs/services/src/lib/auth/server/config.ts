@@ -45,8 +45,12 @@ export type AuthServerConfig = {
   proxyPrefixes: readonly string[];
   /** Request headers the proxy forwards to the backend. */
   forwardHeaders?: readonly string[];
-  /** `Secure` on the cookies. Default: production and an https backend. */
+  /** `Secure` on the cookies. Default: on in production builds; set `false` only for a plain-http staging host. */
   secureCookies?: boolean;
+  /** The largest JSON body an auth route accepts, in bytes. Default 64 KiB. */
+  maxAuthBodyBytes?: number;
+  /** The largest body the proxy forwards, in bytes. Default 10 MiB; raise it for uploads. */
+  maxProxyBodyBytes?: number;
   /** Fallback lifetimes when a token carries no `exp`. */
   maxAge?: { access?: number; refresh?: number };
   /** Deadline for backend calls made by the BFF, in ms. */

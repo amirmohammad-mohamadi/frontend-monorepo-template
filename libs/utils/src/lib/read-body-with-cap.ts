@@ -12,7 +12,7 @@ export async function readBodyWithCap(
   body: ReadableStream<Uint8Array> | null,
   contentLength: string | null,
   maxBytes: number
-): Promise<Uint8Array | null> {
+): Promise<Uint8Array<ArrayBuffer> | null> {
   if (contentLength !== null && Number(contentLength) > maxBytes) return null;
   if (!body) return new Uint8Array(0);
 

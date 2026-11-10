@@ -11,6 +11,7 @@ import {
   type SessionUserDto,
   type TokenPairDto,
 } from "@dtos";
+import { readBodyWithCap } from "@utils";
 import { NO_STORE_HEADERS, type AuthServerConfig } from "./config";
 import { jwtSecondsToExpiry } from "./jwt";
 import { resolveProxyTarget } from "./proxy-target";
@@ -26,12 +27,24 @@ export type CredentialStrategy<TInput> = {
   path: string;
   /** Reshapes the validated body before it is sent; default: as it is. */
   toBackendBody?: (input: TInput) => unknown;
+  /**
+   * Whether the session outlives the browser session. Default: the value of
+   * a boolean `remember` field in the validated body, else `true`.
+   */
+  persistent?: (input: TInput) => boolean;
 };
+
+/** How the cookies are written: for the token lifetimes, or for the browser session only. */
+export type SessionOptions = { persistent?: boolean };
 
 const DEFAULT_FORWARD_HEADERS = ["content-type", "accept", "accept-language"];
 const DEFAULT_ACCESS_MAX_AGE = 60 * 60 * 24;
 const DEFAULT_REFRESH_MAX_AGE = 60 * 60 * 24 * 30;
 const DEFAULT_TIMEOUT_MS = 10_000;
+/** The largest JSON body an auth route reads; a sign-in form is a few hundred bytes. */
+const DEFAULT_AUTH_BODY_BYTES = 64 * 1024;
+/** The largest body the proxy forwards; raise `maxProxyBodyBytes` for uploads. */
+const DEFAULT_PROXY_BODY_BYTES = 10 * 1024 * 1024;
 const NULL_BODY_STATUSES = new Set([204, 205, 304]);
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
@@ -67,6 +80,17 @@ export function isSameOriginRequest(req: NextRequest): boolean {
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
   NextResponse.json(body, { status, headers: { ...NO_STORE_HEADERS, ...headers } });
 
+/** The request body as JSON, or the response that refuses it (413 too large, 400 not JSON). */
+async function readJsonBody(req: NextRequest, maxBytes: number): Promise<{ body: unknown } | { refusal: NextResponse }> {
+  const bytes = await readBodyWithCap(req.body, req.headers.get("content-length"), maxBytes);
+  if (bytes === null) return { refusal: json({ message: "Request body too large" }, 413) };
+  try {
+    return { body: JSON.parse(new TextDecoder().decode(bytes)) };
+  } catch {
+    return { refusal: json({ message: "Invalid request body" }, 400) };
+  }
+}
+
 /**
  * Builds the server side of the BFF auth pattern for one app: cookie
  * management, a single-flight token refresh, the standard route handlers and
@@ -85,9 +109,10 @@ export function createAuthServer(config: AuthServerConfig) {
   const refreshBody = backend.refreshBody ?? ((refresh_token: string) => ({ refresh_token }));
   const forwardHeaders = config.forwardHeaders ?? DEFAULT_FORWARD_HEADERS;
   const timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const secure =
-    config.secureCookies ??
-    (process.env.NODE_ENV === "production" && backend.baseUrl.startsWith("https"));
+  const authBodyBytes = config.maxAuthBodyBytes ?? DEFAULT_AUTH_BODY_BYTES;
+  const proxyBodyBytes = config.maxProxyBodyBytes ?? DEFAULT_PROXY_BODY_BYTES;
+  // Production cookies are Secure unless a deployment says otherwise (plain-http staging).
+  const secure = config.secureCookies ?? process.env.NODE_ENV === "production";
 
   const backendUrl = (path: string) => `${backend.baseUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
 
@@ -104,16 +129,19 @@ export function createAuthServer(config: AuthServerConfig) {
       signal: AbortSignal.timeout(timeoutMs),
     });
 
-  function setSession(res: NextResponse, tokens: TokenPairDto): void {
+  /**
+   * Writes the session cookies. A persistent session lives as long as its
+   * tokens; a non-persistent one ("remember me" left unticked) ends with the
+   * browser session, while the tokens still expire server-side.
+   */
+  function setSession(res: NextResponse, tokens: TokenPairDto, options: SessionOptions = {}): void {
+    const persistent = options.persistent ?? true;
     const base = { httpOnly: true, secure, sameSite: "lax" as const, path: "/" };
-    res.cookies.set(cookies.access, tokens.access_token, {
-      ...base,
-      maxAge: tokens.expires_in ?? jwtSecondsToExpiry(tokens.access_token) ?? config.maxAge?.access ?? DEFAULT_ACCESS_MAX_AGE,
-    });
-    res.cookies.set(cookies.refresh, tokens.refresh_token, {
-      ...base,
-      maxAge: jwtSecondsToExpiry(tokens.refresh_token) ?? config.maxAge?.refresh ?? DEFAULT_REFRESH_MAX_AGE,
-    });
+    const accessMaxAge =
+      tokens.expires_in ?? jwtSecondsToExpiry(tokens.access_token) ?? config.maxAge?.access ?? DEFAULT_ACCESS_MAX_AGE;
+    const refreshMaxAge = jwtSecondsToExpiry(tokens.refresh_token) ?? config.maxAge?.refresh ?? DEFAULT_REFRESH_MAX_AGE;
+    res.cookies.set(cookies.access, tokens.access_token, { ...base, ...(persistent ? { maxAge: accessMaxAge } : {}) });
+    res.cookies.set(cookies.refresh, tokens.refresh_token, { ...base, ...(persistent ? { maxAge: refreshMaxAge } : {}) });
   }
 
   function clearSession(res: NextResponse): void {
@@ -167,6 +195,32 @@ export function createAuthServer(config: AuthServerConfig) {
     return json({ message: "The given data was invalid.", statusCode: 422, errors }, 422);
   };
 
+  /** Validates a strategy's body: the parsed input, or the response that refuses it. */
+  async function readStrategyInput<TInput>(
+    req: NextRequest,
+    strategy: CredentialStrategy<TInput>
+  ): Promise<{ input: TInput } | { refusal: NextResponse }> {
+    if (!isSameOriginRequest(req)) return { refusal: json({ message: "Forbidden" }, 403) };
+    const read = await readJsonBody(req, authBodyBytes);
+    if ("refusal" in read) return read;
+    const parsed = strategy.schema.safeParse(read.body);
+    if (!parsed.success) return { refusal: validationError(parsed.error.issues) };
+    return { input: parsed.data };
+  }
+
+  const postStrategy = <TInput>(strategy: CredentialStrategy<TInput>, input: TInput) =>
+    backendFetch(strategy.path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(strategy.toBackendBody ? strategy.toBackendBody(input) : input),
+    }).catch(() => null);
+
+  const isPersistent = <TInput>(strategy: CredentialStrategy<TInput>, input: TInput): boolean => {
+    if (strategy.persistent) return strategy.persistent(input);
+    const remember = isRecord(input) ? input.remember : undefined;
+    return typeof remember === "boolean" ? remember : true;
+  };
+
   /**
    * A route handler that validates the body with `schema`, posts it to the
    * backend and opens a session from the answer. `login`, `register` and
@@ -174,21 +228,15 @@ export function createAuthServer(config: AuthServerConfig) {
    */
   function credentialHandler<TInput>(strategy: CredentialStrategy<TInput>): Handler {
     return async (req) => {
-      if (!isSameOriginRequest(req)) return json({ message: "Forbidden" }, 403);
-      const raw = await req.json().catch(() => null);
-      const parsed = strategy.schema.safeParse(raw);
-      if (!parsed.success) return validationError(parsed.error.issues);
-      const upstream = await backendFetch(strategy.path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(strategy.toBackendBody ? strategy.toBackendBody(parsed.data) : parsed.data),
-      }).catch(() => null);
+      const read = await readStrategyInput(req, strategy);
+      if ("refusal" in read) return read.refusal;
+      const upstream = await postStrategy(strategy, read.input);
       if (!upstream) return json({ message: "The sign-in service is unreachable." }, 502);
       if (!upstream.ok) return upstreamError(upstream);
       const payload = readAuthPayload(await upstream.json().catch(() => null));
       if (!payload) return json({ message: "The sign-in service sent an unexpected answer." }, 502);
       const res = json({ data: { user: payload.user } });
-      setSession(res, payload);
+      setSession(res, payload, { persistent: isPersistent(strategy, read.input) });
       return res;
     };
   }
@@ -196,15 +244,9 @@ export function createAuthServer(config: AuthServerConfig) {
   /** A route handler that forwards a body to the backend without opening a session (forgot password). */
   function passthroughHandler<TInput>(strategy: CredentialStrategy<TInput>): Handler {
     return async (req) => {
-      if (!isSameOriginRequest(req)) return json({ message: "Forbidden" }, 403);
-      const raw = await req.json().catch(() => null);
-      const parsed = strategy.schema.safeParse(raw);
-      if (!parsed.success) return validationError(parsed.error.issues);
-      const upstream = await backendFetch(strategy.path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(strategy.toBackendBody ? strategy.toBackendBody(parsed.data) : parsed.data),
-      }).catch(() => null);
+      const read = await readStrategyInput(req, strategy);
+      if ("refusal" in read) return read.refusal;
+      const upstream = await postStrategy(strategy, read.input);
       if (!upstream) return json({ message: "The service is unreachable." }, 502);
       if (!upstream.ok) return upstreamError(upstream);
       return json({ data: { success: true } });
@@ -222,19 +264,28 @@ export function createAuthServer(config: AuthServerConfig) {
     return res;
   };
 
-  /** Sends `path` to the backend with the session token, refreshing it once on a 401. */
+  /**
+   * Sends `path` to the backend with the session token, refreshing it once
+   * on a 401. `sessionLost` is true only when the session cannot be
+   * recovered: no refresh token, or the refresh itself was rejected. A 401
+   * the backend returns after a successful refresh is the endpoint's own
+   * answer and leaves the session alone.
+   */
   async function authenticatedFetch(req: NextRequest, path: string, init: RequestInit) {
     const { accessToken, refreshToken } = readSession(req);
     let upstream = await backendFetch(path, init, accessToken);
     let rotated: TokenPairDto | null = null;
-    if (upstream.status === 401 && refreshToken) {
-      const refreshed = await refreshTokens(refreshToken);
+    let sessionLost = false;
+    if (upstream.status === 401) {
+      const refreshed = refreshToken ? await refreshTokens(refreshToken) : null;
       if (refreshed) {
         rotated = refreshed;
         upstream = await backendFetch(path, init, refreshed.access_token);
+      } else {
+        sessionLost = true;
       }
     }
-    return { upstream, rotated };
+    return { upstream, rotated, sessionLost };
   }
 
   /**
@@ -244,12 +295,10 @@ export function createAuthServer(config: AuthServerConfig) {
    */
   const me: Handler = async (req) => {
     if (!readSession(req).isAuthenticated) return json({ data: { user: null } });
-    const { upstream, rotated } = await authenticatedFetch(req, backend.paths.me, { method: "GET" }).catch(() => ({
-      upstream: null,
-      rotated: null,
-    }));
-    if (!upstream) return json({ message: "The service is unreachable." }, 502);
-    if (upstream.status === 401) {
+    const result = await authenticatedFetch(req, backend.paths.me, { method: "GET" }).catch(() => null);
+    if (!result) return json({ message: "The service is unreachable." }, 502);
+    const { upstream, rotated, sessionLost } = result;
+    if (sessionLost) {
       const res = json({ data: { user: null } });
       clearSession(res);
       return res;
@@ -273,14 +322,20 @@ export function createAuthServer(config: AuthServerConfig) {
       const value = req.headers.get(name);
       if (value) headers[name] = value;
     }
-    // Buffered once so the request can be sent again after a token refresh.
-    const body = req.method === "GET" || req.method === "HEAD" ? undefined : Buffer.from(await req.arrayBuffer());
-    const { upstream, rotated } = await authenticatedFetch(req, `${target}${req.nextUrl.search}`, {
+    // Buffered once (bounded) so the request can be sent again after a token refresh.
+    let body: Uint8Array<ArrayBuffer> | undefined;
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      const bytes = await readBodyWithCap(req.body, req.headers.get("content-length"), proxyBodyBytes);
+      if (bytes === null) return json({ message: "Request body too large" }, 413);
+      body = bytes;
+    }
+    const result = await authenticatedFetch(req, `${target}${req.nextUrl.search}`, {
       method: req.method,
       headers,
       body,
-    }).catch(() => ({ upstream: null, rotated: null }));
-    if (!upstream) return json({ message: "The service is unreachable." }, 502);
+    }).catch(() => null);
+    if (!result) return json({ message: "The service is unreachable." }, 502);
+    const { upstream, rotated, sessionLost } = result;
 
     // A 204/205/304 may carry no body at all: the Response constructor throws otherwise.
     const bodyless = NULL_BODY_STATUSES.has(upstream.status);
@@ -292,7 +347,7 @@ export function createAuthServer(config: AuthServerConfig) {
       },
     });
     if (rotated) setSession(res, rotated);
-    else if (upstream.status === 401) clearSession(res);
+    else if (sessionLost) clearSession(res);
     return res;
   }
 

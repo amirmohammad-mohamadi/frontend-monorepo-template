@@ -3,8 +3,8 @@ import { z } from "zod";
 /** The user object the auth routes hand to the browser. Tokens never appear here. */
 export const sessionUserSchema = z.object({
   id: z.union([z.number(), z.string()]),
-  name: z.string().nullable(),
-  email: z.string().nullable(),
+  name: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
   avatar_url: z.string().nullable().optional(),
   roles: z.array(z.string()).optional(),
   permissions: z.array(z.string()).optional(),

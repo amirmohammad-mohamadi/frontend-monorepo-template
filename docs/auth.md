@@ -37,6 +37,14 @@ export const POST = authServer.credentialHandler({ schema, path: "/api/v1/auth/o
 
 A step that does not open a session (sending the code) is `authServer.passthroughHandler`. Social sign-in works the same way: the callback route receives the provider code and exchanges it through `credentialHandler` with the backend's callback path. Nothing in the library changes.
 
+## Cookies, "remember me" and limits
+
+- Production builds write `Secure` cookies. Set `AUTH_COOKIE_SECURE=false` only for a staging host served over plain http.
+- A sign-in body with `remember: false` opens a browser-session cookie pair (no `Max-Age`); `true` or absent keeps the cookies for the tokens' lifetimes. A strategy can decide this itself with its `persistent` option.
+- Auth routes read at most 64 KiB of body and the proxy forwards at most 10 MiB (`maxAuthBodyBytes`, `maxProxyBodyBytes` in the config); larger bodies answer 413 before anything is parsed.
+- A backend 401 ends the session only when the refresh token is missing or rejected. A 401 the backend returns after a successful refresh is passed through as the endpoint's own answer, and the session stays.
+- The proxy forwards `content-type`, `accept` and `accept-language` by default; list more in `forwardHeaders`.
+
 ## The edge guard
 
 `createAuthGuard` runs in `proxy.ts` and decides from the cookies alone (no network): a refresh cookie or an unexpired access cookie counts as signed in. It is a convenience, not the security boundary; the backend still rejects bad tokens, and the BFF clears the cookies when it does.
