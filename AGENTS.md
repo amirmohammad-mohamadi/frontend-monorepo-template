@@ -10,14 +10,14 @@ Two Next.js apps and seven libraries in an Nx workspace. Data flows in one direc
 backend → libs/services (apiClient → <domain>.api.ts → <domain>.hooks.ts) → app feature hook → presentational component
 ```
 
-| Project | Tag | May import |
-|---|---|---|
-| `apps/web`, `apps/admin` | `type:app` | every lib |
-| `libs/services` | `type:service` | dtos, models, utils, enums |
-| `libs/components` | `type:ui` | utils (and type-only dtos/models) |
-| `libs/dtos` | `type:dto` | enums |
-| `libs/models` | `type:model` | enums |
-| `libs/utils`, `libs/enums` | leaf | nothing |
+| Project                    | Tag            | May import                        |
+| -------------------------- | -------------- | --------------------------------- |
+| `apps/web`, `apps/admin`   | `type:app`     | every lib                         |
+| `libs/services`            | `type:service` | dtos, models, utils, enums        |
+| `libs/components`          | `type:ui`      | utils (and type-only dtos/models) |
+| `libs/dtos`                | `type:dto`     | enums                             |
+| `libs/models`              | `type:model`   | enums                             |
+| `libs/utils`, `libs/enums` | leaf           | nothing                           |
 
 ESLint enforces these edges (`no-restricted-imports` blocks in `eslint.config.mts`). Import from a lib root alias (`@services`, `@components`, …), never a deep path. The one sanctioned deep import is `@services/auth/server`, which holds server-only code and must stay out of the `@services` barrel.
 
@@ -40,7 +40,7 @@ ESLint enforces these edges (`no-restricted-imports` blocks in `eslint.config.mt
 
 ```bash
 npm run dev            # mock API + both apps
-npm run check          # lint + typecheck + unit tests + word gate (run before committing)
+npm run check          # lint + tools lint + typecheck + unit tests + word gate + format check (run before committing)
 npm run e2e            # Playwright smoke tests
 npm run generate:domain -- <name>   # scaffold a domain
 npm run example:remove              # drop the reference domain

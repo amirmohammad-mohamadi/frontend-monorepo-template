@@ -38,15 +38,15 @@ docs/         architecture, auth, backend adapter, environment, generator
 
 ## Daily commands
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | all three dev servers |
-| `npm run check` | lint, typecheck, unit tests, word gate |
-| `npm run lint` / `npm run typecheck` / `npm test` | the individual gates |
-| `npm run e2e` | Playwright smoke tests (starts the servers itself) |
-| `npm run build` | production builds of both apps |
-| `npm run generate:domain -- product` | scaffold a domain across every layer |
-| `npm run example:remove` | delete the reference domain |
+| Command                                           | What it does                                                     |
+| ------------------------------------------------- | ---------------------------------------------------------------- |
+| `npm run dev`                                     | all three dev servers                                            |
+| `npm run check`                                   | lint, tools lint, typecheck, unit tests, word gate, format check |
+| `npm run lint` / `npm run typecheck` / `npm test` | the individual gates                                             |
+| `npm run e2e`                                     | Playwright smoke tests (starts the servers itself)               |
+| `npm run build`                                   | production builds of both apps                                   |
+| `npm run generate:domain -- product`              | scaffold a domain across every layer                             |
+| `npm run example:remove`                          | delete the reference domain                                      |
 
 ## Starting a project from this repository
 

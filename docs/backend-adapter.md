@@ -2,11 +2,11 @@
 
 `libs/services/src/lib/shared/backend-adapter.ts` is the one file that knows how a backend shapes its JSON. It has three jobs:
 
-| Method | Default behaviour |
-|---|---|
-| `unwrap(body)` | returns `body.data` when the body is a small wrapper with a `data` member, else the body |
-| `readList(body)` | items from `data`, `items` or `results` (or a bare array); pagination from `meta`, `pagination`, `_paginate` or the root, in `snake_case` or `camelCase` (`current_page`, `page`, `per_page`, `pageSize`, `total`, `last_page`, `totalPages`, …) |
-| `readError(body, status, statusText)` | message from `message`, `error.message`, `detail` or `title`; code from `code`; field errors from a `{ field: string[] }` map, a `{ field: string }` map, or a list of `{ field \| field_name \| path, message \| errors }` |
+| Method                                | Default behaviour                                                                                                                                                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `unwrap(body)`                        | returns `body.data` when the body is a small wrapper with a `data` member, else the body                                                                                                                                                         |
+| `readList(body)`                      | items from `data`, `items` or `results` (or a bare array); pagination from `meta`, `pagination`, `_paginate` or the root, in `snake_case` or `camelCase` (`current_page`, `page`, `per_page`, `pageSize`, `total`, `last_page`, `totalPages`, …) |
+| `readError(body, status, statusText)` | message from `message`, `error.message`, `detail` or `title`; code from `code`; field errors from a `{ field: string[] }` map, a `{ field: string }` map, or a list of `{ field \| field_name \| path, message \| errors }`                      |
 
 If a backend fits these conventions, nothing needs configuring. If it does not, override once at app start (the apps' `lib/api-client-setup.ts` is imported by the root providers and is the right place):
 

@@ -8,13 +8,13 @@ Backend-for-frontend (BFF) with httpOnly cookies. The browser posts credentials 
 
 ## What the backend must provide
 
-| Operation | Default path (web) | Expected answer |
-|---|---|---|
-| login | `POST /api/v1/auth/login` | `{ access_token, refresh_token, expires_in?, user }` (optionally under `data`) |
-| refresh | `POST /api/v1/auth/refresh` with `{ refresh_token }` | same as login |
-| me | `GET /api/v1/me` with Bearer | the user (optionally under `data` or `user`) |
-| logout | `POST /api/v1/auth/logout` with Bearer | anything |
-| register, forgot-password, reset-password | optional | as login / `{}` |
+| Operation                                 | Default path (web)                                   | Expected answer                                                                |
+| ----------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------ |
+| login                                     | `POST /api/v1/auth/login`                            | `{ access_token, refresh_token, expires_in?, user }` (optionally under `data`) |
+| refresh                                   | `POST /api/v1/auth/refresh` with `{ refresh_token }` | same as login                                                                  |
+| me                                        | `GET /api/v1/me` with Bearer                         | the user (optionally under `data` or `user`)                                   |
+| logout                                    | `POST /api/v1/auth/logout` with Bearer               | anything                                                                       |
+| register, forgot-password, reset-password | optional                                             | as login / `{}`                                                                |
 
 Change the paths in `apps/*/src/lib/auth/config.ts`. If the backend names the token fields differently, pass `readAuthPayload` (and `readUser`) in the `backend` config to map its body onto `AuthPayloadDto`. If its refresh body differs, pass `refreshBody`.
 
