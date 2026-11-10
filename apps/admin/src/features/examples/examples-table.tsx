@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@components";
 import { formatDate } from "@utils";
+import { ADMIN_LOCALE } from "@/config/locale";
 import { PageHeader } from "@/components/page-header";
 import { TEXTS, fill } from "@/texts";
 import { ExampleFormDialog } from "./example-form-dialog";
@@ -99,7 +100,7 @@ export function ExamplesTable() {
                   <TableCell>
                     <Badge variant={item.isActive() ? "default" : "secondary"}>{t.statuses[item.getStatus()]}</Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{formatDate(item.getCreatedAt(), "en-GB")}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(item.getCreatedAt(), ADMIN_LOCALE)}</TableCell>
                   <TableCell className="text-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

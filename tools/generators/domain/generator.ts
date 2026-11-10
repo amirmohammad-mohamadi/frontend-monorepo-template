@@ -19,6 +19,26 @@ function addEndpoints(tree: Tree, key: string, listPath: string) {
   tree.write(file, current.replace(/\n\} as const;/, `\n${block}`));
 }
 
+/** Adds the admin texts of a list page before the `common:` section of `apps/admin/src/texts.ts`. */
+function addAdminTexts(tree: Tree, key: string, title: string) {
+  const file = "apps/admin/src/texts.ts";
+  const current = tree.read(file, "utf8") ?? "";
+  if (current.includes(`\n  ${key}: {`)) return;
+  const block = [
+    `  ${key}: {`,
+    `    title: "${title}",`,
+    `    search: "Search ${title.toLowerCase()}",`,
+    `    columns: { name: "Name", created: "Created" },`,
+    `    empty: "Nothing here yet.",`,
+    `    loadError: "The list could not be loaded.",`,
+    `    previous: "Previous",`,
+    `    next: "Next",`,
+    `  },`,
+    `  common: {`,
+  ].join("\n");
+  tree.write(file, current.replace(/\n {2}common: \{/, `\n${block}`));
+}
+
 /**
  * Scaffolds one domain through every layer the architecture defines:
  * DTO schemas, a model, the services folder (api, hooks, query keys), the
@@ -45,6 +65,7 @@ export default async function domainGenerator(tree: Tree, schema: Schema) {
   generateFiles(tree, join(__dirname, "files", "libs"), ".", substitutions);
   if (schema.adminPage !== false) {
     generateFiles(tree, join(__dirname, "files", "admin"), ".", substitutions);
+    addAdminTexts(tree, p.propertyName, p.className);
   }
 
   addExport(tree, "libs/dtos/src/index.ts", `export * from "./lib/${n.fileName}";`);

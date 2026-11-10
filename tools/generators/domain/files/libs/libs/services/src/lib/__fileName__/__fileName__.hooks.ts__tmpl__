@@ -10,6 +10,7 @@ import type { NormalizedList } from "../shared/types";
 import { <%= propertyName %>Api } from "./<%= fileName %>.api";
 import { <%= propertyName %>QueryKeys } from "./<%= fileName %>.query-keys";
 
+/** A page of <%= pluralFileName %> as a `PaginatedResponseModel`, so the UI reads `getItems()` and `getPaginate()`. */
 export function use<%= pluralClassName %>(query: Partial<List<%= pluralClassName %>QueryDto> = {}, options: { enabled?: boolean } = {}) {
   return useQuery<NormalizedList<<%= className %>Dto>, ApiClientError, PaginatedResponseModel<<%= className %>Dto, <%= className %>Model>>({
     queryKey: <%= propertyName %>QueryKeys.list(query),
@@ -19,6 +20,7 @@ export function use<%= pluralClassName %>(query: Partial<List<%= pluralClassName
   });
 }
 
+/** One <%= fileName %> by id; disabled until an id is known. */
 export function use<%= className %>(id: number | string | undefined) {
   return useQuery<<%= className %>Dto, ApiClientError, <%= className %>Model>({
     queryKey: <%= propertyName %>QueryKeys.detail(id ?? ""),
@@ -28,6 +30,7 @@ export function use<%= className %>(id: number | string | undefined) {
   });
 }
 
+/** Creates a <%= fileName %> and refreshes every list. */
 export function useCreate<%= className %>(options: { onSuccess?: (created: <%= className %>Model) => void } = {}) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -39,6 +42,7 @@ export function useCreate<%= className %>(options: { onSuccess?: (created: <%= c
   });
 }
 
+/** Updates a <%= fileName %>, writes the answer into its detail query and refreshes every list. */
 export function useUpdate<%= className %>(options: { onSuccess?: (updated: <%= className %>Model) => void } = {}) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -51,6 +55,7 @@ export function useUpdate<%= className %>(options: { onSuccess?: (updated: <%= c
   });
 }
 
+/** Deletes a <%= fileName %>, drops its detail query and refreshes every list. */
 export function useDelete<%= className %>(options: { onSuccess?: () => void } = {}) {
   const queryClient = useQueryClient();
   return useMutation({
