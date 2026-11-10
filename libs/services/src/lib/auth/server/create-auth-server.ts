@@ -32,6 +32,7 @@ const DEFAULT_FORWARD_HEADERS = ["content-type", "accept", "accept-language"];
 const DEFAULT_ACCESS_MAX_AGE = 60 * 60 * 24;
 const DEFAULT_REFRESH_MAX_AGE = 60 * 60 * 24 * 30;
 const DEFAULT_TIMEOUT_MS = 10_000;
+const NULL_BODY_STATUSES = new Set([204, 205, 304]);
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 
@@ -281,11 +282,13 @@ export function createAuthServer(config: AuthServerConfig) {
     }).catch(() => ({ upstream: null, rotated: null }));
     if (!upstream) return json({ message: "The service is unreachable." }, 502);
 
-    const res = new NextResponse(await upstream.arrayBuffer(), {
+    // A 204/205/304 may carry no body at all: the Response constructor throws otherwise.
+    const bodyless = NULL_BODY_STATUSES.has(upstream.status);
+    const res = new NextResponse(bodyless ? null : await upstream.arrayBuffer(), {
       status: upstream.status,
       headers: {
         ...NO_STORE_HEADERS,
-        "Content-Type": upstream.headers.get("content-type") ?? "application/json",
+        ...(bodyless ? {} : { "Content-Type": upstream.headers.get("content-type") ?? "application/json" }),
       },
     });
     if (rotated) setSession(res, rotated);
