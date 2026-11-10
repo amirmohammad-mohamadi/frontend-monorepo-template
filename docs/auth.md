@@ -18,6 +18,10 @@ Backend-for-frontend (BFF) with httpOnly cookies. The browser posts credentials 
 
 Change the paths in `apps/*/src/lib/auth/config.ts`. If the backend names the token fields differently, pass `readAuthPayload` (and `readUser`) in the `backend` config to map its body onto `AuthPayloadDto`. If its refresh body differs, pass `refreshBody`.
 
+## The session route
+
+`GET /api/auth/me` answers `200 { data: { user } }` when signed in and `200 { data: { user: null } }` when not. A signed-out visitor is a normal state, not an error, so the browser console stays clean and `useCurrentUser` treats both answers the same way. The backend's own 401 on an expired session still clears the cookies and answers `{ user: null }`.
+
 ## Adding a strategy
 
 Every strategy is "validate a body, post it to the backend, open a session from the answer". That is `authServer.credentialHandler`:

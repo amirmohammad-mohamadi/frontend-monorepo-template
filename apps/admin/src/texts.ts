@@ -7,7 +7,9 @@ export const TEXTS = {
   appName: "Admin",
   nav: {
     overview: "Overview",
+    // example-domain:start
     examples: "Examples",
+    // example-domain:end
     settings: "Settings",
     signOut: "Sign out",
     account: "Account",
@@ -24,6 +26,12 @@ export const TEXTS = {
     forgotSent: "If that email exists, a reset link is on its way.",
     submitForgot: "Send reset link",
     backToSignIn: "Back to sign in",
+    resetTitle: "Choose a new password",
+    resetSubtitle: "Enter the new password for your operator account.",
+    resetToken: "Reset token",
+    newPassword: "New password",
+    passwordConfirmation: "Confirm new password",
+    submitReset: "Set new password",
     sessionExpired: "Your session has expired. Sign in again.",
     signedOut: "You have been signed out.",
     mockHint: "Mock API account: admin@example.com / password",
@@ -35,12 +43,15 @@ export const TEXTS = {
     subtitle: "Replace these cards with the project's own metrics.",
     welcome: "Signed in as {name}",
     cards: {
+      // example-domain:start
       examples: "Examples",
+      // example-domain:end
       session: "Session",
       permissions: "Permissions",
       none: "None known",
     },
   },
+  // example-domain:start
   examples: {
     title: "Examples",
     subtitle: "A reference CRUD screen over the example domain. Remove with npm run example:remove.",
@@ -70,6 +81,7 @@ export const TEXTS = {
     previous: "Previous",
     next: "Next",
   },
+  // example-domain:end
   settings: {
     title: "Settings",
     subtitle: "A placeholder for project settings screens.",
