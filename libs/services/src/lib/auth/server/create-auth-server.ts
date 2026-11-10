@@ -12,6 +12,7 @@ import {
   type TokenPairDto,
 } from "@dtos";
 import { readBodyWithCap } from "@utils";
+import { getBackendAdapter } from "../../shared/backend-adapter";
 import { NO_STORE_HEADERS, type AuthServerConfig } from "./config";
 import { jwtSecondsToExpiry } from "./jwt";
 import { resolveProxyTarget } from "./proxy-target";
@@ -58,7 +59,11 @@ function defaultReadAuthPayload(body: unknown): AuthPayloadDto | null {
 }
 
 function defaultReadUser(body: unknown): SessionUserDto | null {
-  for (const candidate of [body, isRecord(body) ? body.data : undefined, isRecord(body) ? body.user : undefined]) {
+  for (const candidate of [
+    body,
+    isRecord(body) ? body.data : undefined,
+    isRecord(body) ? body.user : undefined,
+  ]) {
     const parsed = sessionUserSchema.safeParse(candidate);
     if (parsed.success) return parsed.data;
   }
@@ -69,7 +74,11 @@ function defaultReadUser(body: unknown): SessionUserDto | null {
 export function isSameOriginRequest(req: NextRequest): boolean {
   const origin = req.headers.get("origin");
   if (!origin) return true;
-  const hosts = [req.headers.get("host"), req.headers.get("x-forwarded-host"), req.nextUrl.host].filter(Boolean);
+  const hosts = [
+    req.headers.get("host"),
+    req.headers.get("x-forwarded-host"),
+    req.nextUrl.host,
+  ].filter(Boolean);
   try {
     return hosts.includes(new URL(origin).host);
   } catch {
@@ -81,7 +90,10 @@ const json = (body: unknown, status = 200, headers: Record<string, string> = {})
   NextResponse.json(body, { status, headers: { ...NO_STORE_HEADERS, ...headers } });
 
 /** The request body as JSON, or the response that refuses it (413 too large, 400 not JSON). */
-async function readJsonBody(req: NextRequest, maxBytes: number): Promise<{ body: unknown } | { refusal: NextResponse }> {
+async function readJsonBody(
+  req: NextRequest,
+  maxBytes: number
+): Promise<{ body: unknown } | { refusal: NextResponse }> {
   const bytes = await readBodyWithCap(req.body, req.headers.get("content-length"), maxBytes);
   if (bytes === null) return { refusal: json({ message: "Request body too large" }, 413) };
   try {
@@ -102,7 +114,10 @@ async function readJsonBody(req: NextRequest, maxBytes: number): Promise<{ body:
  * here changes.
  */
 export function createAuthServer(config: AuthServerConfig) {
-  const cookies = { access: `${config.cookiePrefix}_access`, refresh: `${config.cookiePrefix}_refresh` };
+  const cookies = {
+    access: `${config.cookiePrefix}_access`,
+    refresh: `${config.cookiePrefix}_refresh`,
+  };
   const backend = config.backend;
   const readAuthPayload = backend.readAuthPayload ?? defaultReadAuthPayload;
   const readUser = backend.readUser ?? defaultReadUser;
@@ -114,7 +129,8 @@ export function createAuthServer(config: AuthServerConfig) {
   // Production cookies are Secure unless a deployment says otherwise (plain-http staging).
   const secure = config.secureCookies ?? process.env.NODE_ENV === "production";
 
-  const backendUrl = (path: string) => `${backend.baseUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+  const backendUrl = (path: string) =>
+    `${backend.baseUrl.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
 
   const backendFetch = (path: string, init: RequestInit, token?: string) =>
     fetch(backendUrl(path), {
@@ -138,10 +154,20 @@ export function createAuthServer(config: AuthServerConfig) {
     const persistent = options.persistent ?? true;
     const base = { httpOnly: true, secure, sameSite: "lax" as const, path: "/" };
     const accessMaxAge =
-      tokens.expires_in ?? jwtSecondsToExpiry(tokens.access_token) ?? config.maxAge?.access ?? DEFAULT_ACCESS_MAX_AGE;
-    const refreshMaxAge = jwtSecondsToExpiry(tokens.refresh_token) ?? config.maxAge?.refresh ?? DEFAULT_REFRESH_MAX_AGE;
-    res.cookies.set(cookies.access, tokens.access_token, { ...base, ...(persistent ? { maxAge: accessMaxAge } : {}) });
-    res.cookies.set(cookies.refresh, tokens.refresh_token, { ...base, ...(persistent ? { maxAge: refreshMaxAge } : {}) });
+      tokens.expires_in ??
+      jwtSecondsToExpiry(tokens.access_token) ??
+      config.maxAge?.access ??
+      DEFAULT_ACCESS_MAX_AGE;
+    const refreshMaxAge =
+      jwtSecondsToExpiry(tokens.refresh_token) ?? config.maxAge?.refresh ?? DEFAULT_REFRESH_MAX_AGE;
+    res.cookies.set(cookies.access, tokens.access_token, {
+      ...base,
+      ...(persistent ? { maxAge: accessMaxAge } : {}),
+    });
+    res.cookies.set(cookies.refresh, tokens.refresh_token, {
+      ...base,
+      ...(persistent ? { maxAge: refreshMaxAge } : {}),
+    });
   }
 
   function clearSession(res: NextResponse): void {
@@ -179,11 +205,17 @@ export function createAuthServer(config: AuthServerConfig) {
     return promise;
   }
 
-  /** Passes a backend error through unchanged (status, body, `Retry-After`). */
+  /**
+   * Passes a backend refusal on with its status and `Retry-After`, but only
+   * the fields the frontend understands (`message`, `statusCode`, `code`,
+   * `errors`), read through the backend adapter: whatever else a backend
+   * puts in an error body (stack, query, internal ids) stays server-side.
+   */
   const upstreamError = async (upstream: Response) => {
-    const body = await upstream.json().catch(() => ({ message: upstream.statusText }));
+    const body = await upstream.json().catch(() => undefined);
+    const dto = getBackendAdapter().readError(body, upstream.status, upstream.statusText);
     const retryAfter = upstream.headers.get("retry-after");
-    return json(body, upstream.status, retryAfter ? { "Retry-After": retryAfter } : {});
+    return json(dto, upstream.status, retryAfter ? { "Retry-After": retryAfter } : {});
   };
 
   const validationError = (issues: { path: PropertyKey[]; message: string }[]) => {
@@ -257,7 +289,9 @@ export function createAuthServer(config: AuthServerConfig) {
     if (!isSameOriginRequest(req)) return json({ message: "Forbidden" }, 403);
     const { accessToken } = readSession(req);
     if (accessToken) {
-      await backendFetch(backend.paths.logout, { method: "POST" }, accessToken).catch(() => undefined);
+      await backendFetch(backend.paths.logout, { method: "POST" }, accessToken).catch(
+        () => undefined
+      );
     }
     const res = json({ data: { success: true } });
     clearSession(res);
@@ -295,7 +329,9 @@ export function createAuthServer(config: AuthServerConfig) {
    */
   const me: Handler = async (req) => {
     if (!readSession(req).isAuthenticated) return json({ data: { user: null } });
-    const result = await authenticatedFetch(req, backend.paths.me, { method: "GET" }).catch(() => null);
+    const result = await authenticatedFetch(req, backend.paths.me, { method: "GET" }).catch(
+      () => null
+    );
     if (!result) return json({ message: "The service is unreachable." }, 502);
     const { upstream, rotated, sessionLost } = result;
     if (sessionLost) {
@@ -313,7 +349,8 @@ export function createAuthServer(config: AuthServerConfig) {
 
   /** `/api/backend/[...path]`: forwards allowed backend paths with the session token. */
   async function proxy(req: NextRequest, context: RouteContext): Promise<NextResponse> {
-    if (req.method !== "GET" && !isSameOriginRequest(req)) return json({ message: "Forbidden" }, 403);
+    if (req.method !== "GET" && !isSameOriginRequest(req))
+      return json({ message: "Forbidden" }, 403);
     const { path } = await context.params;
     const target = resolveProxyTarget(path, config.proxyPrefixes);
     if (target === null) return json({ message: "Not found" }, 404);
@@ -325,7 +362,11 @@ export function createAuthServer(config: AuthServerConfig) {
     // Buffered once (bounded) so the request can be sent again after a token refresh.
     let body: Uint8Array<ArrayBuffer> | undefined;
     if (req.method !== "GET" && req.method !== "HEAD") {
-      const bytes = await readBodyWithCap(req.body, req.headers.get("content-length"), proxyBodyBytes);
+      const bytes = await readBodyWithCap(
+        req.body,
+        req.headers.get("content-length"),
+        proxyBodyBytes
+      );
       if (bytes === null) return json({ message: "Request body too large" }, 413);
       body = bytes;
     }
@@ -343,7 +384,9 @@ export function createAuthServer(config: AuthServerConfig) {
       status: upstream.status,
       headers: {
         ...NO_STORE_HEADERS,
-        ...(bodyless ? {} : { "Content-Type": upstream.headers.get("content-type") ?? "application/json" }),
+        ...(bodyless
+          ? {}
+          : { "Content-Type": upstream.headers.get("content-type") ?? "application/json" }),
       },
     });
     if (rotated) setSession(res, rotated);
@@ -357,13 +400,22 @@ export function createAuthServer(config: AuthServerConfig) {
     logout,
     me,
     register: backend.paths.register
-      ? credentialHandler({ schema: schemas.register ?? registerSchema, path: backend.paths.register })
+      ? credentialHandler({
+          schema: schemas.register ?? registerSchema,
+          path: backend.paths.register,
+        })
       : undefined,
     forgotPassword: backend.paths.forgotPassword
-      ? passthroughHandler({ schema: schemas.forgotPassword ?? forgotPasswordSchema, path: backend.paths.forgotPassword })
+      ? passthroughHandler({
+          schema: schemas.forgotPassword ?? forgotPasswordSchema,
+          path: backend.paths.forgotPassword,
+        })
       : undefined,
     resetPassword: backend.paths.resetPassword
-      ? credentialHandler({ schema: schemas.resetPassword ?? resetPasswordSchema, path: backend.paths.resetPassword })
+      ? credentialHandler({
+          schema: schemas.resetPassword ?? resetPasswordSchema,
+          path: backend.paths.resetPassword,
+        })
       : undefined,
     proxy,
   };

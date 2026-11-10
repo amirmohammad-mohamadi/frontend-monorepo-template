@@ -18,10 +18,23 @@ const boundary = (files: string[], forbidden: { group: string[]; message: string
   },
 });
 
-const UI_LAYER = { group: ["@components", "@components/*"], message: "Services and lower layers must not import UI." };
-const SERVICE_LAYER = { group: ["@services", "@services/*"], message: "Only apps may import @services." };
+const UI_LAYER = {
+  group: ["@components", "@components/*"],
+  message: "Services and lower layers must not import UI.",
+};
+const SERVICE_LAYER = {
+  group: ["@services", "@services/*"],
+  message: "Only apps may import @services.",
+};
 const DEEP_IMPORT = {
-  group: ["@services/lib/*", "@models/lib/*", "@dtos/lib/*", "@utils/lib/*", "@enums/lib/*", "@assets/lib/*"],
+  group: [
+    "@services/lib/*",
+    "@models/lib/*",
+    "@dtos/lib/*",
+    "@utils/lib/*",
+    "@enums/lib/*",
+    "@assets/lib/*",
+  ],
   message: "Import from the lib root alias, not a deep path.",
 };
 
@@ -50,8 +63,11 @@ export default defineConfig([
     plugins: { "@typescript-eslint": tsPlugin as any },
     rules: {
       ...tsPlugin.configs.recommended.rules,
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
       "no-console": ["error", { allow: ["warn", "error"] }],
     },
   },
@@ -84,16 +100,39 @@ export default defineConfig([
   boundary(["libs/**/*.{ts,tsx}"], [DEEP_IMPORT]),
   boundary(["libs/services/**/*.{ts,tsx}"], [UI_LAYER]),
   boundary(["libs/components/**/*.{ts,tsx}"], [SERVICE_LAYER]),
-  boundary(["libs/models/**/*.{ts,tsx}", "libs/dtos/**/*.{ts,tsx}"], [UI_LAYER, SERVICE_LAYER, { group: ["@utils", "@utils/*"], message: "Models and DTOs stay pure." }]),
-  boundary(["libs/utils/**/*.{ts,tsx}", "libs/enums/**/*.{ts,tsx}"], [
-    UI_LAYER,
-    SERVICE_LAYER,
-    { group: ["@models", "@models/*", "@dtos", "@dtos/*", "@assets", "@assets/*"], message: "utils and enums are leaf libraries." },
-  ]),
+  boundary(
+    ["libs/models/**/*.{ts,tsx}", "libs/dtos/**/*.{ts,tsx}"],
+    [
+      UI_LAYER,
+      SERVICE_LAYER,
+      { group: ["@utils", "@utils/*"], message: "Models and DTOs stay pure." },
+    ]
+  ),
+  boundary(
+    ["libs/utils/**/*.{ts,tsx}", "libs/enums/**/*.{ts,tsx}"],
+    [
+      UI_LAYER,
+      SERVICE_LAYER,
+      {
+        group: ["@models", "@models/*", "@dtos", "@dtos/*", "@assets", "@assets/*"],
+        message: "utils and enums are leaf libraries.",
+      },
+    ]
+  ),
   // Tooling scripts and mock API run in Node and may log.
   {
-    files: ["tools/**/*.{js,mjs,ts}", "**/next.config.js", "**/postcss.config.js", "**/jest.config.cjs"],
+    files: [
+      "tools/**/*.{js,mjs,ts}",
+      "**/next.config.js",
+      "**/postcss.config.js",
+      "**/jest.config.cjs",
+    ],
     languageOptions: { globals: { ...globals.node } },
     rules: { "no-console": "off" },
+  },
+  // Third-party plugin objects are untyped for flat config; this file alone may cast them.
+  {
+    files: ["eslint.config.mts"],
+    rules: { "@typescript-eslint/no-explicit-any": "off" },
   },
 ]);
