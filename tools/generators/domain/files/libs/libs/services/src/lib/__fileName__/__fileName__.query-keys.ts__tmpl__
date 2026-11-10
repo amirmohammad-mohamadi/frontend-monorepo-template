@@ -1,0 +1,9 @@
+import type { List<%= pluralClassName %>QueryDto } from "@dtos";
+
+export const <%= propertyName %>QueryKeys = {
+  all: ["<%= pluralFileName %>"] as const,
+  lists: () => [...<%= propertyName %>QueryKeys.all, "list"] as const,
+  list: (query: Partial<List<%= pluralClassName %>QueryDto>) => [...<%= propertyName %>QueryKeys.lists(), query] as const,
+  details: () => [...<%= propertyName %>QueryKeys.all, "detail"] as const,
+  detail: (id: number | string) => [...<%= propertyName %>QueryKeys.details(), String(id)] as const,
+};
