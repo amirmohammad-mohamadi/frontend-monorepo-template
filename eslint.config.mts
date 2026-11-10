@@ -2,6 +2,8 @@ import js from "@eslint/js";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import reactPlugin from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import nextPlugin from "@next/eslint-plugin-next";
 import globals from "globals";
 import { defineConfig } from "eslint/config";
 
@@ -63,6 +65,20 @@ export default defineConfig([
       "react/no-unescaped-entities": "off",
     },
     settings: { react: { version: "detect" } },
+  },
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    plugins: { "react-hooks": reactHooks as any },
+    rules: {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+    },
+  },
+  {
+    files: ["apps/**/*.{js,jsx,ts,tsx}"],
+    plugins: { "@next/next": nextPlugin as any },
+    rules: { ...(nextPlugin as any).configs.recommended.rules },
+    settings: { next: { rootDir: ["apps/web", "apps/admin"] } },
   },
   // Layer boundaries (see AGENTS.md). Apps may import every lib.
   boundary(["libs/**/*.{ts,tsx}"], [DEEP_IMPORT]),

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import "./globals.css";
 
 /**
@@ -11,9 +12,9 @@ export default function RootNotFound() {
         <div className="text-center">
           <p className="text-muted-foreground text-sm">404</p>
           <h1 className="mt-1 text-2xl font-semibold">Page not found</h1>
-          <a href="/" className="text-primary mt-4 inline-block underline">
+          <Link href="/" className="text-primary mt-4 inline-block underline">
             Go to the home page
-          </a>
+          </Link>
         </div>
       </body>
     </html>
