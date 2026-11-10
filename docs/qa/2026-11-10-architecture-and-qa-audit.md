@@ -268,7 +268,7 @@ Beyond the findings above (M7 tests, M8 duplication, M9 generator, L3 dead code)
 | C1 proxy bypass         | `694615a`            | New `resolveProxyTarget` (`libs/services/src/lib/auth/server/proxy-target.ts`) refuses empty, `.`, `..` segments and any decoded segment containing `/` or `\`, re-encodes segments and re-checks the path through the URL parser before matching the allow-list; the proxy uses it | 5 unit tests incl. the three probe shapes; new e2e test `the proxy refuses a path outside its allow-list, encoded or not` (404 for `..%2f` and `%2e%2e` forms)                                                                    |
 | Found during fix        | `0b05636`            | The proxy crashed on a 204/205/304 from the backend (`Response` refuses a body with those statuses); body-less answers are now forwarded without a body                                                                                                                             | Admin delete e2e re-run with no server error in the log                                                                                                                                                                           |
 | H2 `next` advisories    | `465c9ff`            | `next` 16.2.10 → `^16.4.6`                                                                                                                                                                                                                                                          | `npm audit --omit=dev`: `found 0 vulnerabilities`; lint, typecheck, unit tests, both production builds and all e2e tests pass on 16.4.6                                                                                           |
-| H1 Dockerfile           | `18eb8af`            | Runner stage copies `apps/<app>/.next/standalone`, `apps/<app>/.next/static` and `apps/<app>/public`, runs `node apps/<app>/server.js`; `tools/generators/package.json` added to the deps stage; `NX_DAEMON=false` in the build stage                                               | Static only: paths match the measured build output. The Docker daemon was still not running on this machine, so the image build remains **Unverified**                                                                            |
+| H1 Dockerfile           | `18eb8af`            | Runner stage copies `apps/<app>/.next/standalone`, `apps/<app>/.next/static` and `apps/<app>/public`, runs `node apps/<app>/server.js`; `tools/generators/package.json` added to the deps stage; `NX_DAEMON=false` in the build stage                                               | Verified later the same day: both images build and run; see section 12                                                                                                                                                            |
 | H4 reset-password pages | `f72e2a9`            | `/[locale]/reset-password` (web) and `/reset-password` (admin) with forms that read `token` and `email` from the link and sign the user in on success; messages and texts added                                                                                                     | e2e test `the reset-password link sets a new password and signs the user in` passes against the mock                                                                                                                              |
 | H3 `example:remove`     | `02353f6`, `eebad73` | App code that mentions the domain is fenced with `example-domain:start/end` markers which the script cuts; the script also drops the message keys and proxy-prefix defaults, deletes the separate `e2e/examples.spec.ts`, runs `nx sync` and the typecheck                          | In a temp clone: `npm run example:remove` exit 0, then `npm run check` exit 0 (lint, typecheck, 22 tests, word gate) and both production builds exit 0; zero remaining mentions of `examples` in messages, texts and env defaults |
 
@@ -311,7 +311,18 @@ Also changed in passing: the home page's placeholder "architecture notes" link (
 
 The whole repository was also formatted with Prettier once (`npm run format`), so `format:check` starts green.
 
-Nothing from this audit remains open except the Docker image build, which still needs a machine with a running daemon.
+## 12. Docker image build (verified later the same day)
+
+Once the local Docker daemon was repaired (its startup failure was a stale Unix-socket file on the machine, unrelated to this repository), both images were built from the Dockerfile and run:
+
+| Image                                     | Build  | Size   | Probes from the running container                                               |
+| ----------------------------------------- | ------ | ------ | ------------------------------------------------------------------------------- |
+| `starter-web` (`--build-arg APP=web`)     | exit 0 | 391 MB | `/api/health` 200, `/en` 200, `/fa` 200, `/en/account` 307 → `/en/login?next=…` |
+| `starter-admin` (`--build-arg APP=admin`) | exit 0 | 388 MB | `/api/health` 200, `/` 307 → `/login?next=…`, `/login` 200                      |
+
+Both containers start with `▲ Next.js 16.4.6 … Ready`, run as the non-root `app` user and listen on port 3000. The size is dominated by the pruned `node_modules` that Next's standalone output keeps; a project can shrink it later with a smaller base image, but it is not a defect.
+
+Nothing from this audit remains open.
 
 ## 8. Recommended order of work (for approval, nothing applied)
 
