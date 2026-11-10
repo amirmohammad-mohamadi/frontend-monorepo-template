@@ -13,6 +13,7 @@ import {
 } from "@dtos";
 import { NO_STORE_HEADERS, type AuthServerConfig } from "./config";
 import { jwtSecondsToExpiry } from "./jwt";
+import { resolveProxyTarget } from "./proxy-target";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 type Handler = (req: NextRequest) => Promise<NextResponse>;
@@ -264,10 +265,8 @@ export function createAuthServer(config: AuthServerConfig) {
   async function proxy(req: NextRequest, context: RouteContext): Promise<NextResponse> {
     if (req.method !== "GET" && !isSameOriginRequest(req)) return json({ message: "Forbidden" }, 403);
     const { path } = await context.params;
-    const target = `/${path.join("/")}`;
-    if (!config.proxyPrefixes.some((prefix) => target === prefix || target.startsWith(`${prefix}/`))) {
-      return json({ message: "Not found" }, 404);
-    }
+    const target = resolveProxyTarget(path, config.proxyPrefixes);
+    if (target === null) return json({ message: "Not found" }, 404);
     const headers: Record<string, string> = {};
     for (const name of forwardHeaders) {
       const value = req.headers.get(name);

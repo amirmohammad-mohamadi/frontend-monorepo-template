@@ -5,3 +5,4 @@ export * from "./config";
 export * from "./jwt";
 export * from "./create-auth-server";
 export * from "./guard";
+export * from "./proxy-target";
