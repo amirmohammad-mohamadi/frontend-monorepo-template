@@ -20,4 +20,6 @@ export const NAV_MAIN: NavItem[] = [
   // example-domain:end
 ];
 
-export const NAV_SECONDARY: NavItem[] = [{ title: TEXTS.nav.settings, url: "/settings", icon: SettingsIcon }];
+export const NAV_SECONDARY: NavItem[] = [
+  { title: TEXTS.nav.settings, url: "/settings", icon: SettingsIcon },
+];

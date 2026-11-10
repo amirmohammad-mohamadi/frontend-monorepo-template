@@ -79,10 +79,21 @@ for (const p of [
 }
 
 // 2. Barrel exports and the endpoint group.
-for (const p of ["libs/dtos/src/index.ts", "libs/models/src/index.ts", "libs/services/src/index.ts"]) {
-  rewrite(p, (text) => text.split(/\r?\n/).filter((line) => !line.includes("/example")).join("\n"));
+for (const p of [
+  "libs/dtos/src/index.ts",
+  "libs/models/src/index.ts",
+  "libs/services/src/index.ts",
+]) {
+  rewrite(p, (text) =>
+    text
+      .split(/\r?\n/)
+      .filter((line) => !line.includes("/example"))
+      .join("\n")
+  );
 }
-rewrite("libs/services/src/lib/shared/endpoints.ts", (text) => text.replace(/\n {2}example: \{[\s\S]*?\n {2}\},/, ""));
+rewrite("libs/services/src/lib/shared/endpoints.ts", (text) =>
+  text.replace(/\n {2}example: \{[\s\S]*?\n {2}\},/, "")
+);
 
 // 3. Marked blocks in app files.
 for (const p of [
@@ -112,4 +123,6 @@ run("npx nx sync");
 run("npm run typecheck");
 run("npx prettier --write apps/web/messages/en.json apps/web/messages/fa.json");
 
-console.log("\nThe example domain is gone and the workspace typechecks. Run `npm run check` and `npm run e2e` before committing.");
+console.log(
+  "\nThe example domain is gone and the workspace typechecks. Run `npm run check` and `npm run e2e` before committing."
+);

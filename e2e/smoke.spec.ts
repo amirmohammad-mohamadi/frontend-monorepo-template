@@ -35,7 +35,11 @@ test.describe("web", () => {
   });
 
   test("the proxy refuses a path outside its allow-list, encoded or not", async ({ request }) => {
-    for (const path of ["api/v1/admin/me", "api/v1/examples/..%2fadmin/me", "api/v1/examples/%2e%2e/admin/me"]) {
+    for (const path of [
+      "api/v1/admin/me",
+      "api/v1/examples/..%2fadmin/me",
+      "api/v1/examples/%2e%2e/admin/me",
+    ]) {
       const response = await request.get(`${WEB}/api/backend/${path}`);
       expect(response.status(), path).toBe(404);
     }

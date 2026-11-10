@@ -5,7 +5,13 @@ import { Button } from "@components";
 import { captureError } from "@utils";
 import { TEXTS } from "@/texts";
 
-export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function AppError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   useEffect(() => {
     captureError(error, { boundary: "root" });
   }, [error]);

@@ -54,7 +54,8 @@ export const TEXTS = {
   // example-domain:start
   examples: {
     title: "Examples",
-    subtitle: "A reference CRUD screen over the example domain. Remove with npm run example:remove.",
+    subtitle:
+      "A reference CRUD screen over the example domain. Remove with npm run example:remove.",
     newButton: "New example",
     search: "Search examples",
     columns: { title: "Title", status: "Status", created: "Created", actions: "Actions" },

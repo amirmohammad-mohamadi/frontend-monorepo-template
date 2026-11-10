@@ -10,7 +10,14 @@ const guard = createAuthGuard({
 
 const request = (path: string, cookies: Record<string, string> = {}) =>
   new NextRequest(`http://app.test${path}`, {
-    headers: cookies && Object.keys(cookies).length ? { cookie: Object.entries(cookies).map(([k, v]) => `${k}=${v}`).join("; ") } : {},
+    headers:
+      cookies && Object.keys(cookies).length
+        ? {
+            cookie: Object.entries(cookies)
+              .map(([k, v]) => `${k}=${v}`)
+              .join("; "),
+          }
+        : {},
   });
 
 const futureJwt = `${Buffer.from("{}").toString("base64url")}.${Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 600 })).toString("base64url")}.x`;
@@ -38,10 +45,14 @@ describe("createAuthGuard", () => {
   });
 
   it("sends a signed-in visitor away from the login page, to a safe next or home", () => {
-    expect(guard(request("/login?next=%2Fsettings", { web_refresh: "r" }))?.headers.get("location")).toBe("http://app.test/settings");
-    expect(guard(request("/login?next=https%3A%2F%2Fevil.test", { web_refresh: "r" }))?.headers.get("location")).toBe(
-      "http://app.test/account"
-    );
+    expect(
+      guard(request("/login?next=%2Fsettings", { web_refresh: "r" }))?.headers.get("location")
+    ).toBe("http://app.test/settings");
+    expect(
+      guard(request("/login?next=https%3A%2F%2Fevil.test", { web_refresh: "r" }))?.headers.get(
+        "location"
+      )
+    ).toBe("http://app.test/account");
   });
 
   it("normalises the path before matching when asked", () => {

@@ -12,8 +12,25 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   use: { trace: "retain-on-failure", ...devices["Desktop Chrome"] },
   webServer: [
-    { command: "node tools/mock-api/server.mjs", url: "http://localhost:4000/health", cwd: "..", reuseExistingServer: true },
-    { command: "npx next dev -p 3000", url: "http://localhost:3000/api/health", cwd: "../apps/web", reuseExistingServer: true, timeout: 180_000 },
-    { command: "npx next dev -p 3001", url: "http://localhost:3001/api/health", cwd: "../apps/admin", reuseExistingServer: true, timeout: 180_000 },
+    {
+      command: "node tools/mock-api/server.mjs",
+      url: "http://localhost:4000/health",
+      cwd: "..",
+      reuseExistingServer: true,
+    },
+    {
+      command: "npx next dev -p 3000",
+      url: "http://localhost:3000/api/health",
+      cwd: "../apps/web",
+      reuseExistingServer: true,
+      timeout: 180_000,
+    },
+    {
+      command: "npx next dev -p 3001",
+      url: "http://localhost:3001/api/health",
+      cwd: "../apps/admin",
+      reuseExistingServer: true,
+      timeout: 180_000,
+    },
   ],
 });

@@ -11,8 +11,15 @@ import { exampleApi } from "./example.api";
 import { exampleQueryKeys } from "./example.query-keys";
 
 /** A page of examples as a `PaginatedResponseModel`, so the UI reads `getItems()` and `getPaginate()`. */
-export function useExamples(query: Partial<ListExamplesQueryDto> = {}, options: { enabled?: boolean } = {}) {
-  return useQuery<NormalizedList<ExampleDto>, ApiClientError, PaginatedResponseModel<ExampleDto, ExampleModel>>({
+export function useExamples(
+  query: Partial<ListExamplesQueryDto> = {},
+  options: { enabled?: boolean } = {}
+) {
+  return useQuery<
+    NormalizedList<ExampleDto>,
+    ApiClientError,
+    PaginatedResponseModel<ExampleDto, ExampleModel>
+  >({
     queryKey: exampleQueryKeys.list(query),
     queryFn: () => exampleApi.list(query),
     select: (list) => new PaginatedResponseModel(ExampleModel, list),
@@ -43,7 +50,8 @@ export function useCreateExample(options: { onSuccess?: (created: ExampleModel) 
 export function useUpdateExample(options: { onSuccess?: (updated: ExampleModel) => void } = {}) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number | string; data: UpdateExampleDto }) => exampleApi.update(id, data),
+    mutationFn: ({ id, data }: { id: number | string; data: UpdateExampleDto }) =>
+      exampleApi.update(id, data),
     onSuccess: (dto) => {
       queryClient.setQueryData(exampleQueryKeys.detail(dto.id), dto);
       void queryClient.invalidateQueries({ queryKey: exampleQueryKeys.lists() });

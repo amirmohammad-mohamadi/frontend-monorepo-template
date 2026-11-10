@@ -31,7 +31,8 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const login = useLogin({
     // A full navigation: the middleware re-evaluates the fresh cookies and the shell mounts clean.
-    onSuccess: () => window.location.assign(getSafeNextPath(searchParams.get("next"), window.location.origin)),
+    onSuccess: () =>
+      window.location.assign(getSafeNextPath(searchParams.get("next"), window.location.origin)),
   });
   const form = useForm<LoginDto>({
     resolver: zodResolver(loginSchema),
@@ -46,7 +47,11 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values) => login.mutate(values))} className="space-y-4" noValidate>
+          <form
+            onSubmit={form.handleSubmit((values) => login.mutate(values))}
+            className="space-y-4"
+            noValidate
+          >
             <FormField
               control={form.control}
               name="email"
@@ -67,12 +72,20 @@ export function LoginForm() {
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>{t.password}</FormLabel>
-                    <Link href="/forgot-password" className="text-muted-foreground text-xs hover:underline">
+                    <Link
+                      href="/forgot-password"
+                      className="text-muted-foreground text-xs hover:underline"
+                    >
                       {t.forgotLink}
                     </Link>
                   </div>
                   <FormControl>
-                    <PasswordInput autoComplete="current-password" showLabel={t.showPassword} hideLabel={t.hidePassword} {...field} />
+                    <PasswordInput
+                      autoComplete="current-password"
+                      showLabel={t.showPassword}
+                      hideLabel={t.hidePassword}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

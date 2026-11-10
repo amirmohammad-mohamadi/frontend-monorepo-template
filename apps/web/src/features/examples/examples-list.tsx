@@ -81,9 +81,13 @@ export function ExamplesList() {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-base">{item.getTitle()}</CardTitle>
-                      <Badge variant={item.isActive() ? "default" : "secondary"}>{t(`status${capitalize(item.getStatus())}`)}</Badge>
+                      <Badge variant={item.isActive() ? "default" : "secondary"}>
+                        {t(`status${capitalize(item.getStatus())}`)}
+                      </Badge>
                     </div>
-                    <CardDescription className="line-clamp-2">{item.getDescription()}</CardDescription>
+                    <CardDescription className="line-clamp-2">
+                      {item.getDescription()}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="text-muted-foreground text-xs">
                     {t("created")}: {formatDate(item.getCreatedAt(), locale)}
@@ -97,13 +101,21 @@ export function ExamplesList() {
 
       {paginate && paginate.getLastPage() > 1 ? (
         <nav className="flex items-center justify-between" aria-label="Pagination">
-          <Button variant="outline" disabled={!paginate.getHasPreviousPage()} onClick={() => setPage(page - 1)}>
+          <Button
+            variant="outline"
+            disabled={!paginate.getHasPreviousPage()}
+            onClick={() => setPage(page - 1)}
+          >
             {t("previous")}
           </Button>
           <span className="text-muted-foreground text-sm">
             {t("pageOf", { page: paginate.getCurrentPage(), total: paginate.getLastPage() })}
           </span>
-          <Button variant="outline" disabled={!paginate.getHasNextPage()} onClick={() => setPage(page + 1)}>
+          <Button
+            variant="outline"
+            disabled={!paginate.getHasNextPage()}
+            onClick={() => setPage(page + 1)}
+          >
             {t("next")}
           </Button>
         </nav>

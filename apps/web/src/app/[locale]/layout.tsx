@@ -40,7 +40,9 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html lang={locale} dir={localeDirection(locale)} suppressHydrationWarning>
       <body className="min-h-dvh flex flex-col">
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <Providers mutationErrorFallback={messages.common?.somethingWentWrong as string | undefined}>
+          <Providers
+            mutationErrorFallback={messages.common?.somethingWentWrong as string | undefined}
+          >
             <SkipLink />
             <SiteHeader />
             <main id="main" className="flex-1">

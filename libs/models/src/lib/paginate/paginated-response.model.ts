@@ -12,7 +12,10 @@ export class PaginatedResponseModel<TProps, TModel> {
   protected readonly props: IPaginatedList<TProps>;
   protected readonly itemConstructor: new (data?: Partial<TProps>) => TModel;
 
-  constructor(itemConstructor: new (data?: Partial<TProps>) => TModel, data?: IPaginatedList<TProps>) {
+  constructor(
+    itemConstructor: new (data?: Partial<TProps>) => TModel,
+    data?: IPaginatedList<TProps>
+  ) {
     this.itemConstructor = itemConstructor;
     this.props = data ?? { items: [], paginate: {} };
   }

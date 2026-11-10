@@ -30,7 +30,8 @@ export function createAuthGuard(config: AuthGuardConfig) {
     const pathname = normalize(request.nextUrl.pathname);
     const isPublic = config.publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
     const accessToken = request.cookies.get(access)?.value;
-    const isAuthenticated = (!!accessToken && !isJwtExpired(accessToken)) || request.cookies.has(refresh);
+    const isAuthenticated =
+      (!!accessToken && !isJwtExpired(accessToken)) || request.cookies.has(refresh);
 
     if (!isAuthenticated && !isPublic) {
       const loginUrl = new URL(config.loginPath, request.url);
@@ -39,7 +40,9 @@ export function createAuthGuard(config: AuthGuardConfig) {
     }
     if (isAuthenticated && pathname === config.loginPath) {
       const next = getSafeNextPath(request.nextUrl.searchParams.get("next"), request.url);
-      return NextResponse.redirect(new URL(next === "/" ? (config.homePath ?? "/") : next, request.url));
+      return NextResponse.redirect(
+        new URL(next === "/" ? (config.homePath ?? "/") : next, request.url)
+      );
     }
     return null;
   };

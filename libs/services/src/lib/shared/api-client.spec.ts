@@ -2,7 +2,10 @@ import { ApiClientError } from "./api-errors";
 import { apiClient, CLIENT_ERROR_CODES, configureApiClientTransport } from "./api-client";
 
 const answer = (status: number, body: unknown, headers: Record<string, string> = {}) =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json", ...headers },
+  });
 
 let fetchMock: jest.Mock;
 beforeEach(() => {
@@ -27,7 +30,12 @@ describe("apiClient", () => {
   });
 
   it("normalises a list through the backend adapter", async () => {
-    fetchMock.mockResolvedValueOnce(answer(200, { data: [{ id: 1 }], meta: { current_page: 1, last_page: 3, per_page: 1, total: 3 } }));
+    fetchMock.mockResolvedValueOnce(
+      answer(200, {
+        data: [{ id: 1 }],
+        meta: { current_page: 1, last_page: 3, per_page: 1, total: 3 },
+      })
+    );
     const list = await apiClient.getList<{ id: number }>("/api/v1/examples");
     expect(list.items).toEqual([{ id: 1 }]);
     expect(list.paginate.lastPage).toBe(3);
@@ -35,7 +43,11 @@ describe("apiClient", () => {
 
   it("maps a refused request onto ApiClientError with status, code, field errors and Retry-After", async () => {
     fetchMock.mockResolvedValueOnce(
-      answer(422, { message: "Invalid", code: "E1", errors: { title: ["Required"] } }, { "retry-after": "5" })
+      answer(
+        422,
+        { message: "Invalid", code: "E1", errors: { title: ["Required"] } },
+        { "retry-after": "5" }
+      )
     );
     const error = await apiClient.post("/api/v1/examples", {}).catch((e) => e);
     expect(error).toBeInstanceOf(ApiClientError);
@@ -60,7 +72,9 @@ describe("apiClient", () => {
   it("aborts a server-side request after its deadline", async () => {
     fetchMock.mockImplementationOnce(
       (_url: string, init: RequestInit) =>
-        new Promise((_resolve, reject) => init.signal?.addEventListener("abort", () => reject(init.signal?.reason)))
+        new Promise((_resolve, reject) =>
+          init.signal?.addEventListener("abort", () => reject(init.signal?.reason))
+        )
     );
     const error = await apiClient.get("/slow", { timeoutMs: 20 }).catch((e) => e);
     expect(error.code).toBe(CLIENT_ERROR_CODES.REQUEST_TIMEOUT);

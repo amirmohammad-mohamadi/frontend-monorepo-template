@@ -10,7 +10,10 @@ describe("routePermissions", () => {
   });
 
   it("picks the longest matching prefix", () => {
-    Object.assign(ROUTE_PERMISSIONS, { "/settings": ["settings.view"], "/settings/billing": ["billing.manage"] });
+    Object.assign(ROUTE_PERMISSIONS, {
+      "/settings": ["settings.view"],
+      "/settings/billing": ["billing.manage"],
+    });
     expect(routePermissions("/settings/billing/invoices")).toEqual(["billing.manage"]);
     expect(routePermissions("/settings/general")).toEqual(["settings.view"]);
     expect(routePermissions("/settingsx")).toBeNull();

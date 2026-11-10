@@ -7,7 +7,9 @@ export default function SettingsPage() {
     <>
       <PageHeader title={TEXTS.settings.title} subtitle={TEXTS.settings.subtitle} />
       <Card>
-        <CardContent className="text-muted-foreground py-10 text-center text-sm">{TEXTS.settings.subtitle}</CardContent>
+        <CardContent className="text-muted-foreground py-10 text-center text-sm">
+          {TEXTS.settings.subtitle}
+        </CardContent>
       </Card>
     </>
   );

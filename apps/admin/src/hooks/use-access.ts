@@ -15,7 +15,8 @@ export function useAccess() {
   const permissions = user?.toJSON().permissions;
 
   const check = useCallback(
-    (required: readonly string[] | null): AccessDecision => decideAccess(required, status, permissions),
+    (required: readonly string[] | null): AccessDecision =>
+      decideAccess(required, status, permissions),
     [status, permissions]
   );
 

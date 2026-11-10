@@ -66,7 +66,10 @@ export function LoginForm() {
                 <FormItem>
                   <div className="flex items-center justify-between">
                     <FormLabel>{t("password")}</FormLabel>
-                    <Link href="/forgot-password" className="text-muted-foreground text-xs hover:underline">
+                    <Link
+                      href="/forgot-password"
+                      className="text-muted-foreground text-xs hover:underline"
+                    >
                       {t("forgotLink")}
                     </Link>
                   </div>
@@ -89,7 +92,10 @@ export function LoginForm() {
               render={({ field }) => (
                 <FormItem className="flex items-center gap-2">
                   <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(v) => field.onChange(v === true)}
+                    />
                   </FormControl>
                   <FormLabel className="font-normal">{t("remember")}</FormLabel>
                 </FormItem>

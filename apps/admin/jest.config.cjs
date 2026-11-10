@@ -2,7 +2,10 @@ module.exports = {
   displayName: "admin",
   testEnvironment: "node",
   transform: {
-    "^.+\\.(t|j)sx?$": ["@swc/jest", { swcrc: false, jsc: { transform: { react: { runtime: "automatic" } } } }],
+    "^.+\\.(t|j)sx?$": [
+      "@swc/jest",
+      { swcrc: false, jsc: { transform: { react: { runtime: "automatic" } } } },
+    ],
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
   testMatch: ["<rootDir>/src/**/*.spec.ts", "<rootDir>/src/**/*.spec.tsx"],

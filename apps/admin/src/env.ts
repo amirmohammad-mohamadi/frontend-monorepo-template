@@ -9,7 +9,12 @@ export const env = createEnv(
     ADMIN_PROXY_PREFIXES: z
       .string()
       .default("/api/v1/admin,/api/v1/examples")
-      .transform((value) => value.split(",").map((p) => p.trim()).filter(Boolean)),
+      .transform((value) =>
+        value
+          .split(",")
+          .map((p) => p.trim())
+          .filter(Boolean)
+      ),
     AUTH_COOKIE_SECURE: z
       .enum(["true", "false", ""])
       .optional()

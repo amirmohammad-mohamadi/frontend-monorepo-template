@@ -36,7 +36,11 @@ export function SignupForm() {
     defaultValues: { name: "", email: "", password: "", password_confirmation: "" },
   });
 
-  const passwordField = (name: "password" | "password_confirmation", label: string, autoComplete: string) => (
+  const passwordField = (
+    name: "password" | "password_confirmation",
+    label: string,
+    autoComplete: string
+  ) => (
     <FormField
       control={form.control}
       name={name}

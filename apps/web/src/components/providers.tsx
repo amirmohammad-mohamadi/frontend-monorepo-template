@@ -9,7 +9,13 @@ import { installDevelopmentReporter } from "@/lib/observability";
 import { AuthEventHandler } from "./auth-event-handler";
 
 /** Client-side context for every page: theme, react-query, toasts, and the auth event listener. */
-export function Providers({ children, mutationErrorFallback }: { children: ReactNode; mutationErrorFallback?: string }) {
+export function Providers({
+  children,
+  mutationErrorFallback,
+}: {
+  children: ReactNode;
+  mutationErrorFallback?: string;
+}) {
   useEffect(() => {
     installDevelopmentReporter();
   }, []);

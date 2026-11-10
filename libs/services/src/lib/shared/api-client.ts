@@ -56,8 +56,10 @@ function announceAuthRejection(status: number): void {
 
 /** A request's abort signal that also fires after `timeoutMs` on the server. */
 function withDeadline(signal: AbortSignal | null | undefined, timeoutMs: number | undefined) {
-  if (!isServer()) return { signal: signal ?? undefined, clear: () => undefined, timedOut: () => false };
-  const ms = timeoutMs && Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : SERVER_FETCH_TIMEOUT_MS;
+  if (!isServer())
+    return { signal: signal ?? undefined, clear: () => undefined, timedOut: () => false };
+  const ms =
+    timeoutMs && Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : SERVER_FETCH_TIMEOUT_MS;
   const controller = new AbortController();
   let timedOut = false;
   const follow = () => controller.abort(signal?.reason);
@@ -94,7 +96,11 @@ class ApiClient {
     return headers;
   }
 
-  private async request<T>(path: string, options: ApiRequestOptions = {}, parse: "json" | "blob" = "json"): Promise<T> {
+  private async request<T>(
+    path: string,
+    options: ApiRequestOptions = {},
+    parse: "json" | "blob" = "json"
+  ): Promise<T> {
     const { timeoutMs, json: _json, ...init } = options;
     const deadline = withDeadline(init.signal, timeoutMs);
     const url = this.resolveUrl(path);
@@ -170,7 +176,10 @@ class ApiClient {
       const error =
         caught instanceof ApiClientError
           ? caught
-          : ApiClientError.network(caught instanceof Error ? caught.message : "Network error", CLIENT_ERROR_CODES.NETWORK);
+          : ApiClientError.network(
+              caught instanceof Error ? caught.message : "Network error",
+              CLIENT_ERROR_CODES.NETWORK
+            );
       captureError(error, { request: `GET ${url}`, statusCode: error.statusCode });
       throw error;
     } finally {
@@ -179,7 +188,11 @@ class ApiClient {
   }
 
   post<T>(path: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {
-    return this.request<T>(path, { ...options, method: "POST", body: data === undefined ? undefined : JSON.stringify(data) });
+    return this.request<T>(path, {
+      ...options,
+      method: "POST",
+      body: data === undefined ? undefined : JSON.stringify(data),
+    });
   }
 
   put<T>(path: string, data?: unknown, options?: ApiRequestOptions): Promise<T> {

@@ -21,7 +21,9 @@ const trim = (url: string) => url.replace(/\/$/, "");
  */
 export function createApiTransport(options: ApiTransportOptions): ApiClientTransport {
   const isProxied = (path: string) =>
-    options.proxyPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`));
+    options.proxyPrefixes.some(
+      (prefix) => path === prefix || path.startsWith(`${prefix}/`) || path.startsWith(`${prefix}?`)
+    );
   return {
     resolveUrl: (path) => {
       if (typeof window === "undefined") return `${trim(options.internalBaseUrl)}${path}`;

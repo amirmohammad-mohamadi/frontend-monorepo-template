@@ -18,14 +18,21 @@ export function Overview() {
 
   return (
     <>
-      <PageHeader title={t.title} subtitle={user ? fill(t.welcome, { name: user.getDisplayName() }) : t.subtitle} />
+      <PageHeader
+        title={t.title}
+        subtitle={user ? fill(t.welcome, { name: user.getDisplayName() }) : t.subtitle}
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* example-domain:start */}
         <Card>
           <CardHeader>
             <CardDescription>{t.cards.examples}</CardDescription>
             <CardTitle className="text-3xl">
-              {examples.isPending ? <Skeleton className="h-8 w-16" /> : examples.data?.getPaginate().getTotalItems() ?? "—"}
+              {examples.isPending ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                (examples.data?.getPaginate().getTotalItems() ?? "—")
+              )}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -39,9 +46,13 @@ export function Overview() {
         <Card>
           <CardHeader>
             <CardDescription>{t.cards.permissions}</CardDescription>
-            <CardTitle className="text-lg">{user?.getPermissions().length || t.cards.none}</CardTitle>
+            <CardTitle className="text-lg">
+              {user?.getPermissions().length || t.cards.none}
+            </CardTitle>
           </CardHeader>
-          <CardContent className="text-muted-foreground text-xs">{user?.getRoles().join(", ")}</CardContent>
+          <CardContent className="text-muted-foreground text-xs">
+            {user?.getRoles().join(", ")}
+          </CardContent>
         </Card>
       </div>
     </>

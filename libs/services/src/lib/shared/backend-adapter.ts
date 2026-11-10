@@ -23,7 +23,8 @@ export type BackendAdapter = {
 
 type AnyRecord = Record<string, unknown>;
 
-const isRecord = (value: unknown): value is AnyRecord => typeof value === "object" && value !== null;
+const isRecord = (value: unknown): value is AnyRecord =>
+  typeof value === "object" && value !== null;
 
 const toNumber = (value: unknown): number | undefined => {
   const n = typeof value === "string" ? Number(value) : value;

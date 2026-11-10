@@ -3,7 +3,12 @@ import { defaultBackendAdapter } from "./backend-adapter";
 describe("defaultBackendAdapter.unwrap", () => {
   it("returns data when wrapped and the body otherwise", () => {
     expect(defaultBackendAdapter.unwrap({ data: { id: 1 } })).toEqual({ id: 1 });
-    expect(defaultBackendAdapter.unwrap({ id: 1, name: "x", other: 2, more: 3 })).toEqual({ id: 1, name: "x", other: 2, more: 3 });
+    expect(defaultBackendAdapter.unwrap({ id: 1, name: "x", other: 2, more: 3 })).toEqual({
+      id: 1,
+      name: "x",
+      other: 2,
+      more: 3,
+    });
     expect(defaultBackendAdapter.unwrap([1, 2])).toEqual([1, 2]);
   });
 });
@@ -19,26 +24,52 @@ describe("defaultBackendAdapter.readList", () => {
   });
 
   it("reads root-level page/pageSize/total and derives the last page", () => {
-    const list = defaultBackendAdapter.readList({ items: [{ id: 1 }], page: 1, pageSize: 20, total: 45 });
+    const list = defaultBackendAdapter.readList({
+      items: [{ id: 1 }],
+      page: 1,
+      pageSize: 20,
+      total: 45,
+    });
     expect(list.paginate).toEqual({ currentPage: 1, perPage: 20, total: 45, lastPage: 3 });
   });
 
   it("accepts a bare array", () => {
-    expect(defaultBackendAdapter.readList([{ id: 1 }])).toEqual({ items: [{ id: 1 }], paginate: {} });
+    expect(defaultBackendAdapter.readList([{ id: 1 }])).toEqual({
+      items: [{ id: 1 }],
+      paginate: {},
+    });
   });
 });
 
 describe("defaultBackendAdapter.readError", () => {
   it("keys field errors from a map of arrays, a map of strings and a list of entries", () => {
-    expect(defaultBackendAdapter.readError({ message: "Invalid", errors: { email: ["Required"] } }, 422, "").errors).toEqual({
-      email: ["Required"],
-    });
-    expect(defaultBackendAdapter.readError({ message: "Invalid", errors: { email: "Required" } }, 422, "").errors).toEqual({
+    expect(
+      defaultBackendAdapter.readError(
+        { message: "Invalid", errors: { email: ["Required"] } },
+        422,
+        ""
+      ).errors
+    ).toEqual({
       email: ["Required"],
     });
     expect(
       defaultBackendAdapter.readError(
-        { message: "Invalid", errors: [{ field_name: "email", errors: ["Required"] }, { path: "name", message: "Short" }] },
+        { message: "Invalid", errors: { email: "Required" } },
+        422,
+        ""
+      ).errors
+    ).toEqual({
+      email: ["Required"],
+    });
+    expect(
+      defaultBackendAdapter.readError(
+        {
+          message: "Invalid",
+          errors: [
+            { field_name: "email", errors: ["Required"] },
+            { path: "name", message: "Short" },
+          ],
+        },
         422,
         ""
       ).errors
@@ -47,6 +78,11 @@ describe("defaultBackendAdapter.readError", () => {
 
   it("falls back to the status text and keeps the status", () => {
     const error = defaultBackendAdapter.readError(undefined, 502, "Bad Gateway");
-    expect(error).toEqual({ message: "Bad Gateway", statusCode: 502, code: undefined, errors: undefined });
+    expect(error).toEqual({
+      message: "Bad Gateway",
+      statusCode: 502,
+      code: undefined,
+      errors: undefined,
+    });
   });
 });

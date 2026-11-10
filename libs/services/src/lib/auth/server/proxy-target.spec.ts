@@ -5,7 +5,9 @@ const PREFIXES = ["/api/v1/me", "/api/v1/examples"];
 describe("resolveProxyTarget", () => {
   it("forwards an allowed prefix and its subpaths", () => {
     expect(resolveProxyTarget(["api", "v1", "me"], PREFIXES)).toBe("/api/v1/me");
-    expect(resolveProxyTarget(["api", "v1", "examples", "12"], PREFIXES)).toBe("/api/v1/examples/12");
+    expect(resolveProxyTarget(["api", "v1", "examples", "12"], PREFIXES)).toBe(
+      "/api/v1/examples/12"
+    );
   });
 
   it("refuses paths outside the allow-list", () => {
@@ -25,7 +27,9 @@ describe("resolveProxyTarget", () => {
   });
 
   it("re-encodes characters a backend would otherwise misread", () => {
-    expect(resolveProxyTarget(["api", "v1", "examples", "a b?c"], PREFIXES)).toBe("/api/v1/examples/a%20b%3Fc");
+    expect(resolveProxyTarget(["api", "v1", "examples", "a b?c"], PREFIXES)).toBe(
+      "/api/v1/examples/a%20b%3Fc"
+    );
   });
 
   it("ignores empty prefixes and trailing slashes in the configuration", () => {

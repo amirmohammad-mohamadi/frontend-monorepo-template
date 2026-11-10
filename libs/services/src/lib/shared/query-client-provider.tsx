@@ -1,6 +1,9 @@
 "use client";
 
-import { QueryClient, QueryClientProvider as ReactQueryClientProvider } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider as ReactQueryClientProvider,
+} from "@tanstack/react-query";
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { isBrowserOffline } from "@utils";
 import { queryGcTime } from "./query-gc-time";
@@ -15,12 +18,16 @@ export type QueryClientOfflineMode = "pause" | "fail";
 const QUERY_RETRIES = 3;
 
 /** The app's QueryClient: retries with backoff on queries, none on mutations, 5-minute staleTime. */
-export function createQueryClient({ offline = "pause" }: { offline?: QueryClientOfflineMode } = {}): QueryClient {
+export function createQueryClient({
+  offline = "pause",
+}: { offline?: QueryClientOfflineMode } = {}): QueryClient {
   const failOffline = offline === "fail";
   return new QueryClient({
     defaultOptions: {
       queries: {
-        retry: failOffline ? (count) => count < QUERY_RETRIES && !isBrowserOffline() : QUERY_RETRIES,
+        retry: failOffline
+          ? (count) => count < QUERY_RETRIES && !isBrowserOffline()
+          : QUERY_RETRIES,
         retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30_000),
         staleTime: 5 * 60 * 1000,
         gcTime: queryGcTime(),
@@ -41,7 +48,9 @@ export function createQueryClient({ offline = "pause" }: { offline?: QueryClient
  * sent no usable message. Apps provide a translated string; the default is
  * English.
  */
-const MutationErrorFallbackContext = createContext<string>("Something went wrong. Please try again.");
+const MutationErrorFallbackContext = createContext<string>(
+  "Something went wrong. Please try again."
+);
 
 export function useMutationErrorFallback(): string {
   return useContext(MutationErrorFallbackContext);
@@ -65,7 +74,9 @@ export function QueryClientProvider({
   const [client] = useState(() => queryClient ?? createQueryClient({ offline }));
   const inner = <ReactQueryClientProvider client={client}>{children}</ReactQueryClientProvider>;
   return mutationErrorFallback ? (
-    <MutationErrorFallbackContext.Provider value={mutationErrorFallback}>{inner}</MutationErrorFallbackContext.Provider>
+    <MutationErrorFallbackContext.Provider value={mutationErrorFallback}>
+      {inner}
+    </MutationErrorFallbackContext.Provider>
   ) : (
     inner
   );

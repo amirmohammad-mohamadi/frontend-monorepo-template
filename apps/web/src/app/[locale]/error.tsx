@@ -6,7 +6,13 @@ import { Button } from "@components";
 import { captureError } from "@utils";
 import { Link } from "@/i18n/navigation";
 
-export default function LocaleError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function LocaleError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   const t = useTranslations("errors");
   const common = useTranslations("common");
 

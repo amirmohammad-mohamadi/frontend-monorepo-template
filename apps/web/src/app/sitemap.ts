@@ -10,7 +10,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${env.NEXT_PUBLIC_SITE_URL}/${locale}${page}`,
       lastModified: new Date(),
       alternates: {
-        languages: Object.fromEntries(routing.locales.map((l) => [l, `${env.NEXT_PUBLIC_SITE_URL}/${l}${page}`])),
+        languages: Object.fromEntries(
+          routing.locales.map((l) => [l, `${env.NEXT_PUBLIC_SITE_URL}/${l}${page}`])
+        ),
       },
     }))
   );

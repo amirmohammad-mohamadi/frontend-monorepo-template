@@ -1,7 +1,12 @@
 module.exports = {
   displayName: "services",
   testEnvironment: "node",
-  transform: { "^.+\\.(t|j)sx?$": ["@swc/jest", { swcrc: false, jsc: { transform: { react: { runtime: "automatic" } } } }] },
+  transform: {
+    "^.+\\.(t|j)sx?$": [
+      "@swc/jest",
+      { swcrc: false, jsc: { transform: { react: { runtime: "automatic" } } } },
+    ],
+  },
   moduleFileExtensions: ["ts", "tsx", "js"],
   testMatch: ["<rootDir>/src/**/*.spec.ts"],
   moduleNameMapper: {

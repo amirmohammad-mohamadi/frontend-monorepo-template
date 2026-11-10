@@ -1,8 +1,8 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva, type VariantProps } from "class-variance-authority"
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from "@utils"
+import { cn } from "@utils";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -12,21 +12,17 @@ const buttonVariants = cva(
         // `bg-brand-600` (absolute) rather than `bg-brand` (theme-aware ink):
         // this fill carries white text (5.6:1), and in the dark theme
         // `--brand` is lifted too light for that. See --brand.
-        default:
-          "bg-brand-600 text-brand-foreground shadow-xs hover:bg-brand-600/90",
+        default: "bg-brand-600 text-brand-foreground shadow-xs hover:bg-brand-600/90",
         destructive:
           "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        secondary: "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-brand underline-offset-4 hover:underline",
         // v2 text CTA (Nova Ghost): label and icon in the brand ink, which
         // keeps AA on the dark background where `--primary` would not.
-        "ghost-primary":
-          "text-brand hover:bg-accent hover:text-brand dark:hover:bg-accent/50",
+        "ghost-primary": "text-brand hover:bg-accent hover:text-brand dark:hover:bg-accent/50",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -46,7 +42,7 @@ const buttonVariants = cva(
       size: "default",
     },
   }
-)
+);
 
 function Button({
   className,
@@ -56,9 +52,9 @@ function Button({
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
+    asChild?: boolean;
   }) {
-  const Comp = asChild ? Slot : "button"
+  const Comp = asChild ? Slot : "button";
 
   // An icon-only button shows no text, so its `aria-label` is the only
   // description of what it does — screen readers get it, sighted users are
@@ -67,12 +63,10 @@ function Button({
   // gives every one of them a hover tooltip without touching a call site, and
   // without the layout/portal cost of a Tooltip component on every row.
   // An explicit `title` always wins.
-  const iconOnly = size === "icon" || size === "nova-icon"
+  const iconOnly = size === "icon" || size === "nova-icon";
   const title =
     props.title ??
-    (iconOnly && typeof props["aria-label"] === "string"
-      ? props["aria-label"]
-      : undefined)
+    (iconOnly && typeof props["aria-label"] === "string" ? props["aria-label"] : undefined);
 
   return (
     <Comp
@@ -82,7 +76,7 @@ function Button({
       {...props}
       title={title}
     />
-  )
+  );
 }
 
-export { Button, buttonVariants }
+export { Button, buttonVariants };

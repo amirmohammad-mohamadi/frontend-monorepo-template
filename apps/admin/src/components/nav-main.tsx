@@ -19,7 +19,8 @@ import {
 import type { NavItem } from "@/config/navigation";
 import { useAccess } from "@/hooks/use-access";
 
-const isActivePath = (pathname: string, url: string) => (url === "/" ? pathname === "/" : pathname === url || pathname.startsWith(`${url}/`));
+const isActivePath = (pathname: string, url: string) =>
+  url === "/" ? pathname === "/" : pathname === url || pathname.startsWith(`${url}/`);
 
 /** A sidebar group. Entries the operator may not open (`ROUTE_PERMISSIONS`) are left out. */
 export function NavMain({ label, items }: { label?: string; items: NavItem[] }) {
@@ -33,7 +34,12 @@ export function NavMain({ label, items }: { label?: string; items: NavItem[] }) 
       <SidebarMenu>
         {visible.map((item) =>
           item.items?.length ? (
-            <Collapsible key={item.url} asChild defaultOpen={isActivePath(pathname, item.url)} className="group/collapsible">
+            <Collapsible
+              key={item.url}
+              asChild
+              defaultOpen={isActivePath(pathname, item.url)}
+              className="group/collapsible"
+            >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton tooltip={item.title}>
@@ -59,7 +65,11 @@ export function NavMain({ label, items }: { label?: string; items: NavItem[] }) 
             </Collapsible>
           ) : (
             <SidebarMenuItem key={item.url}>
-              <SidebarMenuButton asChild tooltip={item.title} isActive={isActivePath(pathname, item.url)}>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={isActivePath(pathname, item.url)}
+              >
                 <Link href={item.url}>
                   {item.icon ? <item.icon /> : null}
                   <span>{item.title}</span>

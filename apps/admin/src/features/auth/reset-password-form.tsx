@@ -48,7 +48,12 @@ export function ResetPasswordForm() {
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <PasswordInput autoComplete="new-password" showLabel={t.showPassword} hideLabel={t.hidePassword} {...field} />
+            <PasswordInput
+              autoComplete="new-password"
+              showLabel={t.showPassword}
+              hideLabel={t.hidePassword}
+              {...field}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -64,7 +69,11 @@ export function ResetPasswordForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values) => reset.mutate(values))} className="space-y-4" noValidate>
+          <form
+            onSubmit={form.handleSubmit((values) => reset.mutate(values))}
+            className="space-y-4"
+            noValidate
+          >
             <FormField
               control={form.control}
               name="email"
@@ -97,7 +106,10 @@ export function ResetPasswordForm() {
             <Button type="submit" className="w-full" disabled={reset.isPending}>
               {t.submitReset}
             </Button>
-            <Link href="/login" className="text-muted-foreground block text-center text-sm underline">
+            <Link
+              href="/login"
+              className="text-muted-foreground block text-center text-sm underline"
+            >
               {t.backToSignIn}
             </Link>
           </form>

@@ -77,8 +77,13 @@ export default async function domainGenerator(tree: Tree, schema: Schema) {
 
   return () => {
     console.log(`\nDomain "${n.fileName}" scaffolded. Next:`);
-    console.log(`  - fill in the fields in libs/dtos/src/lib/${n.fileName}/${n.fileName}.dto.ts and the model`);
-    if (schema.adminPage !== false) console.log(`  - add { title: "${p.className}", url: "/${p.fileName}" } to apps/admin/src/config/navigation.ts`);
+    console.log(
+      `  - fill in the fields in libs/dtos/src/lib/${n.fileName}/${n.fileName}.dto.ts and the model`
+    );
+    if (schema.adminPage !== false)
+      console.log(
+        `  - add { title: "${p.className}", url: "/${p.fileName}" } to apps/admin/src/config/navigation.ts`
+      );
     console.log("  - npm run typecheck");
   };
 }

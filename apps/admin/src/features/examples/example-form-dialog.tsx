@@ -33,9 +33,20 @@ import { TEXTS } from "@/texts";
 const EMPTY: CreateExampleDto = { title: "", description: "", status: "draft" };
 
 /** Create when `example` is null, edit otherwise. Closes itself on success. */
-export function ExampleFormDialog({ open, example, onClose }: { open: boolean; example: ExampleModel | null; onClose: () => void }) {
+export function ExampleFormDialog({
+  open,
+  example,
+  onClose,
+}: {
+  open: boolean;
+  example: ExampleModel | null;
+  onClose: () => void;
+}) {
   const t = TEXTS.examples;
-  const form = useForm<CreateExampleDto>({ resolver: zodResolver(createExampleSchema), defaultValues: EMPTY });
+  const form = useForm<CreateExampleDto>({
+    resolver: zodResolver(createExampleSchema),
+    defaultValues: EMPTY,
+  });
   const create = useCreateExample({
     onSuccess: () => {
       toast.success(t.created);
@@ -52,7 +63,13 @@ export function ExampleFormDialog({ open, example, onClose }: { open: boolean; e
   useEffect(() => {
     if (!open) return;
     form.reset(
-      example ? { title: example.getTitle(), description: example.getDescription(), status: example.getStatus() } : EMPTY
+      example
+        ? {
+            title: example.getTitle(),
+            description: example.getDescription(),
+            status: example.getStatus(),
+          }
+        : EMPTY
     );
   }, [open, example, form]);
 

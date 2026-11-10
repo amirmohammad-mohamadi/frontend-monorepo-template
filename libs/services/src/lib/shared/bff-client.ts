@@ -31,5 +31,8 @@ export async function bffRequest<T>(url: string, init: RequestInit = {}): Promis
 export const bffClient = {
   get: <T>(url: string) => bffRequest<T>(url, { method: "GET" }),
   post: <T>(url: string, data?: unknown) =>
-    bffRequest<T>(url, { method: "POST", body: data === undefined ? undefined : JSON.stringify(data) }),
+    bffRequest<T>(url, {
+      method: "POST",
+      body: data === undefined ? undefined : JSON.stringify(data),
+    }),
 };

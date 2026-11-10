@@ -9,7 +9,9 @@ export function SiteHeader({ title }: { title?: string }) {
       <Separator orientation="vertical" className="me-2 h-4" />
       {title ? <h1 className="text-sm font-medium">{title}</h1> : null}
       <div className="ms-auto">
-        <ThemeToggle labels={{ theme: c.theme, light: c.themeLight, dark: c.themeDark, system: c.themeSystem }} />
+        <ThemeToggle
+          labels={{ theme: c.theme, light: c.themeLight, dark: c.themeDark, system: c.themeSystem }}
+        />
       </div>
     </header>
   );

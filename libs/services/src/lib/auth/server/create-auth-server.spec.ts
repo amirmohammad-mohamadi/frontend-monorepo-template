@@ -28,7 +28,12 @@ const server = createAuthServer({
 const post = (url: string, body: unknown, headers: Record<string, string> = {}) =>
   new NextRequest(url, {
     method: "POST",
-    headers: { "content-type": "application/json", origin: "http://app.test", host: "app.test", ...headers },
+    headers: {
+      "content-type": "application/json",
+      origin: "http://app.test",
+      host: "app.test",
+      ...headers,
+    },
     body: JSON.stringify(body),
   });
 
@@ -42,13 +47,17 @@ beforeEach(() => {
 
 describe("login handler", () => {
   it("refuses a cross-origin call", async () => {
-    const res = await server.handlers.login(post("http://app.test/api/auth/login", {}, { origin: "http://evil.test" }));
+    const res = await server.handlers.login(
+      post("http://app.test/api/auth/login", {}, { origin: "http://evil.test" })
+    );
     expect(res.status).toBe(403);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("answers 422 with field errors for an invalid body", async () => {
-    const res = await server.handlers.login(post("http://app.test/api/auth/login", { email: "nope", password: "short" }));
+    const res = await server.handlers.login(
+      post("http://app.test/api/auth/login", { email: "nope", password: "short" })
+    );
     expect(res.status).toBe(422);
     const body = await res.json();
     expect(Object.keys(body.errors)).toEqual(expect.arrayContaining(["email", "password"]));
@@ -65,7 +74,9 @@ describe("login handler", () => {
 
   it("opens a persistent session from the backend's token pair and returns only the user", async () => {
     fetchMock.mockResolvedValueOnce(answer(200, { data: tokens() }));
-    const res = await server.handlers.login(post("http://app.test/api/auth/login", { email: "a@b.co", password: "password" }));
+    const res = await server.handlers.login(
+      post("http://app.test/api/auth/login", { email: "a@b.co", password: "password" })
+    );
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ data: { user } });
     const cookies = cookieHeader(res);
@@ -78,14 +89,20 @@ describe("login handler", () => {
   it("writes session cookies without Max-Age when remember is false", async () => {
     fetchMock.mockResolvedValueOnce(answer(200, tokens()));
     const res = await server.handlers.login(
-      post("http://app.test/api/auth/login", { email: "a@b.co", password: "password", remember: false })
+      post("http://app.test/api/auth/login", {
+        email: "a@b.co",
+        password: "password",
+        remember: false,
+      })
     );
     expect(cookieHeader(res)).not.toMatch(/Max-Age/);
   });
 
   it("passes a backend refusal through with its status and Retry-After", async () => {
     fetchMock.mockResolvedValueOnce(answer(429, { message: "Slow down" }, { "retry-after": "30" }));
-    const res = await server.handlers.login(post("http://app.test/api/auth/login", { email: "a@b.co", password: "password" }));
+    const res = await server.handlers.login(
+      post("http://app.test/api/auth/login", { email: "a@b.co", password: "password" })
+    );
     expect(res.status).toBe(429);
     expect(res.headers.get("retry-after")).toBe("30");
   });
@@ -105,7 +122,9 @@ describe("me handler", () => {
       .mockResolvedValueOnce(answer(200, { data: tokens() }))
       .mockResolvedValueOnce(answer(200, { data: user }));
     const res = await server.handlers.me(
-      new NextRequest("http://app.test/api/auth/me", { headers: { cookie: `t_access=old; t_refresh=r1` } })
+      new NextRequest("http://app.test/api/auth/me", {
+        headers: { cookie: `t_access=old; t_refresh=r1` },
+      })
     );
     expect(res.status).toBe(200);
     expect((await res.json()).data.user).toEqual(user);
@@ -116,7 +135,9 @@ describe("me handler", () => {
   it("clears the session only when the refresh itself fails", async () => {
     fetchMock.mockResolvedValueOnce(answer(401)).mockResolvedValueOnce(answer(401));
     const res = await server.handlers.me(
-      new NextRequest("http://app.test/api/auth/me", { headers: { cookie: `t_access=old; t_refresh=dead` } })
+      new NextRequest("http://app.test/api/auth/me", {
+        headers: { cookie: `t_access=old; t_refresh=dead` },
+      })
     );
     expect(await res.json()).toEqual({ data: { user: null } });
     expect(cookieHeader(res)).toMatch(/t_access=;.*Max-Age=0/);
@@ -128,7 +149,11 @@ describe("proxy", () => {
     server.handlers.proxy(
       new NextRequest(`http://app.test/api/backend/${path.join("/")}`, {
         method: init.method ?? "GET",
-        headers: { origin: "http://app.test", host: "app.test", ...(init.cookie ? { cookie: init.cookie } : {}) },
+        headers: {
+          origin: "http://app.test",
+          host: "app.test",
+          ...(init.cookie ? { cookie: init.cookie } : {}),
+        },
         body: init.body,
       }),
       { params: Promise.resolve({ path }) }
@@ -156,7 +181,10 @@ describe("proxy", () => {
 
   it("passes a 204 through without a body", async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
-    const res = await proxy(["api", "v1", "examples", "1"], { method: "DELETE", cookie: "t_access=abc" });
+    const res = await proxy(["api", "v1", "examples", "1"], {
+      method: "DELETE",
+      cookie: "t_access=abc",
+    });
     expect(res.status).toBe(204);
     expect(res.body).toBeNull();
   });
@@ -175,9 +203,14 @@ describe("proxy", () => {
   it("shares one refresh between concurrent requests with the same refresh token", async () => {
     fetchMock.mockImplementation(async (url: string) => {
       if (url.endsWith("/auth/refresh")) return answer(200, { data: tokens() });
-      return answer(fetchMock.mock.calls.filter((c) => !String(c[0]).endsWith("/auth/refresh")).length <= 2 ? 401 : 200, {
-        data: [],
-      });
+      return answer(
+        fetchMock.mock.calls.filter((c) => !String(c[0]).endsWith("/auth/refresh")).length <= 2
+          ? 401
+          : 200,
+        {
+          data: [],
+        }
+      );
     });
     await Promise.all([
       proxy(["api", "v1", "examples"], { cookie: "t_access=old; t_refresh=shared" }),
@@ -188,7 +221,11 @@ describe("proxy", () => {
   });
 
   it("refuses a body over the proxy cap", async () => {
-    const res = await proxy(["api", "v1", "examples"], { method: "POST", cookie: "t_access=abc", body: "x".repeat(1000) });
+    const res = await proxy(["api", "v1", "examples"], {
+      method: "POST",
+      cookie: "t_access=abc",
+      body: "x".repeat(1000),
+    });
     expect(res.status).toBe(413);
     expect(fetchMock).not.toHaveBeenCalled();
   });

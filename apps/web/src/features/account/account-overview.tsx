@@ -1,7 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@components";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+} from "@components";
 import { useCurrentUser } from "@services";
 import { Link } from "@/i18n/navigation";
 

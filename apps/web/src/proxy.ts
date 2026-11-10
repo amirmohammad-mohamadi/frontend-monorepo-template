@@ -9,7 +9,9 @@ const handleLocale = createIntlMiddleware(routing);
 /** Strips the locale segment so the guard matches paths the way pages are written. */
 function withoutLocale(pathname: string): string {
   const [, first = "", ...rest] = pathname.split("/");
-  return (routing.locales as readonly string[]).includes(first) ? `/${rest.join("/")}`.replace(/\/$/, "") || "/" : pathname;
+  return (routing.locales as readonly string[]).includes(first)
+    ? `/${rest.join("/")}`.replace(/\/$/, "") || "/"
+    : pathname;
 }
 
 /**

@@ -11,7 +11,10 @@
  * @param segments the decoded catch-all segments (`params.path`)
  * @param prefixes allowed backend path prefixes, e.g. `["/api/v1/me"]`
  */
-export function resolveProxyTarget(segments: readonly string[], prefixes: readonly string[]): string | null {
+export function resolveProxyTarget(
+  segments: readonly string[],
+  prefixes: readonly string[]
+): string | null {
   if (segments.length === 0) return null;
   for (const segment of segments) {
     if (segment === "" || segment === "." || segment === "..") return null;

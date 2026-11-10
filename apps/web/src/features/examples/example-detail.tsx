@@ -1,7 +1,16 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@components";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+} from "@components";
 import { useExample } from "@services";
 import { formatDate } from "@utils";
 import { Link } from "@/i18n/navigation";
@@ -34,13 +43,17 @@ export function ExampleDetail({ id }: { id: string }) {
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <CardTitle>{query.data.getTitle()}</CardTitle>
-              <Badge variant={query.data.isActive() ? "default" : "secondary"}>{query.data.getStatus()}</Badge>
+              <Badge variant={query.data.isActive() ? "default" : "secondary"}>
+                {query.data.getStatus()}
+              </Badge>
             </div>
             <CardDescription>
               {t("created")}: {formatDate(query.data.getCreatedAt(), locale)}
             </CardDescription>
           </CardHeader>
-          <CardContent className="whitespace-pre-line">{query.data.getDescription() || common("noResults")}</CardContent>
+          <CardContent className="whitespace-pre-line">
+            {query.data.getDescription() || common("noResults")}
+          </CardContent>
         </Card>
       )}
     </div>

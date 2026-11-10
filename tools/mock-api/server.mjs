@@ -38,7 +38,20 @@ const users = {
 
 let nextExampleId = 1;
 const examples = new Map();
-const seed = ["Getting started", "Second entry", "Archived note", "Active item", "Draft idea", "Another one", "Yet another", "Eighth", "Ninth", "Tenth", "Eleventh", "Twelfth"];
+const seed = [
+  "Getting started",
+  "Second entry",
+  "Archived note",
+  "Active item",
+  "Draft idea",
+  "Another one",
+  "Yet another",
+  "Eighth",
+  "Ninth",
+  "Tenth",
+  "Eleventh",
+  "Twelfth",
+];
 for (const [i, title] of seed.entries()) {
   const id = nextExampleId++;
   examples.set(id, {
@@ -55,7 +68,12 @@ for (const [i, title] of seed.entries()) {
 const issued = new Set();
 const b64 = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
 function mintToken(user, kind, ttl) {
-  const payload = { sub: user.email, kind, exp: Math.floor(Date.now() / 1000) + ttl, jti: Math.random().toString(36).slice(2) };
+  const payload = {
+    sub: user.email,
+    kind,
+    exp: Math.floor(Date.now() / 1000) + ttl,
+    jti: Math.random().toString(36).slice(2),
+  };
   const token = `${b64({ alg: "none", typ: "JWT" })}.${b64(payload)}.mock`;
   issued.add(token);
   return token;
@@ -92,7 +110,8 @@ const json = (res, status, body, headers = {}) => {
   res.writeHead(status, { "Content-Type": "application/json", ...headers });
   res.end(body === undefined ? "" : JSON.stringify(body));
 };
-const error = (res, status, message, errors) => json(res, status, { message, ...(errors ? { errors } : {}) });
+const error = (res, status, message, errors) =>
+  json(res, status, { message, ...(errors ? { errors } : {}) });
 const readJson = (req) =>
   new Promise((resolve) => {
     let raw = "";
@@ -118,7 +137,8 @@ async function handleAuth(req, res, url, scope, action) {
     if (!body.email) errors.email = ["The email field is required."];
     if (!body.password) errors.password = ["The password field is required."];
     if (Object.keys(errors).length) return error(res, 422, "The given data was invalid.", errors);
-    if (!user || user.password !== body.password || user.scope !== scope) return error(res, 401, "These credentials do not match our records.");
+    if (!user || user.password !== body.password || user.scope !== scope)
+      return error(res, 401, "These credentials do not match our records.");
     return json(res, 200, { data: session(user) });
   }
   if (action === "refresh") {
@@ -135,15 +155,29 @@ async function handleAuth(req, res, url, scope, action) {
   if (action === "register" && scope === "web") {
     if (!body) return error(res, 400, "Invalid JSON body");
     const email = String(body.email ?? "").toLowerCase();
-    if (users[email]) return error(res, 422, "The given data was invalid.", { email: ["This email is already registered."] });
-    const user = { id: Object.keys(users).length + 1, name: body.name ?? "", email, password: body.password, roles: ["customer"], permissions: [], scope: "web" };
+    if (users[email])
+      return error(res, 422, "The given data was invalid.", {
+        email: ["This email is already registered."],
+      });
+    const user = {
+      id: Object.keys(users).length + 1,
+      name: body.name ?? "",
+      email,
+      password: body.password,
+      roles: ["customer"],
+      permissions: [],
+      scope: "web",
+    };
     users[email] = user;
     return json(res, 201, { data: session(user) });
   }
   if (action === "forgot-password") return json(res, 200, { data: { success: true } });
   if (action === "reset-password") {
     const user = users[String(body?.email ?? "").toLowerCase()];
-    if (!user || body?.token !== "mock-reset-token") return error(res, 422, "The given data was invalid.", { token: ["This reset token is invalid."] });
+    if (!user || body?.token !== "mock-reset-token")
+      return error(res, 422, "The given data was invalid.", {
+        token: ["This reset token is invalid."],
+      });
     user.password = body.password;
     return json(res, 200, { data: session(user) });
   }
@@ -157,22 +191,34 @@ function listExamples(res, url) {
   const search = (url.searchParams.get("search") ?? "").toLowerCase();
   const status = url.searchParams.get("status");
   let items = [...examples.values()].sort((a, b) => b.id - a.id);
-  if (search) items = items.filter((e) => e.title.toLowerCase().includes(search) || (e.description ?? "").toLowerCase().includes(search));
+  if (search)
+    items = items.filter(
+      (e) =>
+        e.title.toLowerCase().includes(search) ||
+        (e.description ?? "").toLowerCase().includes(search)
+    );
   if (status) items = items.filter((e) => e.status === status);
   const total = items.length;
   const data = items.slice((page - 1) * perPage, page * perPage);
   return json(res, 200, {
     data,
-    meta: { current_page: page, last_page: Math.max(1, Math.ceil(total / perPage)), per_page: perPage, total },
+    meta: {
+      current_page: page,
+      last_page: Math.max(1, Math.ceil(total / perPage)),
+      per_page: perPage,
+      total,
+    },
   });
 }
 
 function validateExample(body, partial) {
   const errors = {};
   if (!partial || body.title !== undefined) {
-    if (typeof body.title !== "string" || body.title.trim().length < 2) errors.title = ["The title must be at least 2 characters."];
+    if (typeof body.title !== "string" || body.title.trim().length < 2)
+      errors.title = ["The title must be at least 2 characters."];
   }
-  if (body.status !== undefined && !["draft", "active", "archived"].includes(body.status)) errors.status = ["The selected status is invalid."];
+  if (body.status !== undefined && !["draft", "active", "archived"].includes(body.status))
+    errors.status = ["The selected status is invalid."];
   return Object.keys(errors).length ? errors : null;
 }
 
@@ -187,7 +233,14 @@ async function handleExamples(req, res, url, id) {
       const errors = validateExample(body, false);
       if (errors) return error(res, 422, "The given data was invalid.", errors);
       const now = new Date().toISOString();
-      const created = { id: nextExampleId++, title: body.title.trim(), description: body.description ?? null, status: body.status ?? "draft", created_at: now, updated_at: now };
+      const created = {
+        id: nextExampleId++,
+        title: body.title.trim(),
+        description: body.description ?? null,
+        status: body.status ?? "draft",
+        created_at: now,
+        updated_at: now,
+      };
       examples.set(created.id, created);
       return json(res, 201, { data: created });
     }
@@ -201,7 +254,10 @@ async function handleExamples(req, res, url, id) {
     if (!body) return error(res, 400, "Invalid JSON body");
     const errors = validateExample(body, true);
     if (errors) return error(res, 422, "The given data was invalid.", errors);
-    Object.assign(existing, body, { title: (body.title ?? existing.title).trim(), updated_at: new Date().toISOString() });
+    Object.assign(existing, body, {
+      title: (body.title ?? existing.title).trim(),
+      updated_at: new Date().toISOString(),
+    });
     return json(res, 200, { data: existing });
   }
   if (req.method === "DELETE") {
@@ -217,7 +273,10 @@ const server = createServer(async (req, res) => {
   if (origin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Accept-Language, Authorization");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Accept, Accept-Language, Authorization"
+    );
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
   }
   if (req.method === "OPTIONS") return json(res, 204);
@@ -233,10 +292,12 @@ const server = createServer(async (req, res) => {
   }
   if ((match = path.match(/^\/api\/v1\/(admin\/)?me$/))) {
     const user = readToken(bearer(req), "access");
-    if (!user || user.scope !== (match[1] ? "admin" : "web")) return error(res, 401, "Unauthenticated");
+    if (!user || user.scope !== (match[1] ? "admin" : "web"))
+      return error(res, 401, "Unauthenticated");
     return json(res, 200, { data: publicUser(user) });
   }
-  if ((match = path.match(/^\/api\/v1\/examples(?:\/(\d+))?$/))) return handleExamples(req, res, url, match[1]);
+  if ((match = path.match(/^\/api\/v1\/examples(?:\/(\d+))?$/)))
+    return handleExamples(req, res, url, match[1]);
   return error(res, 404, `No mock route for ${req.method} ${path}`);
 });
 

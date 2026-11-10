@@ -26,7 +26,10 @@ import { TEXTS } from "@/texts";
 export function ForgotPasswordForm() {
   const t = TEXTS.auth;
   const forgot = useForgotPassword();
-  const form = useForm<ForgotPasswordDto>({ resolver: zodResolver(forgotPasswordSchema), defaultValues: { email: "" } });
+  const form = useForm<ForgotPasswordDto>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
 
   return (
     <Card>
@@ -36,7 +39,11 @@ export function ForgotPasswordForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((values) => forgot.mutate(values))} className="space-y-4" noValidate>
+          <form
+            onSubmit={form.handleSubmit((values) => forgot.mutate(values))}
+            className="space-y-4"
+            noValidate
+          >
             {forgot.isSuccess ? (
               <p role="status" className="text-sm">
                 {t.forgotSent}
@@ -56,13 +63,18 @@ export function ForgotPasswordForm() {
                     </FormItem>
                   )}
                 />
-                <FormError error={describeApiError(forgot.error, TEXTS.common.somethingWentWrong)} />
+                <FormError
+                  error={describeApiError(forgot.error, TEXTS.common.somethingWentWrong)}
+                />
                 <Button type="submit" className="w-full" disabled={forgot.isPending}>
                   {t.submitForgot}
                 </Button>
               </>
             )}
-            <Link href="/login" className="text-muted-foreground block text-center text-sm underline">
+            <Link
+              href="/login"
+              className="text-muted-foreground block text-center text-sm underline"
+            >
               {t.backToSignIn}
             </Link>
           </form>

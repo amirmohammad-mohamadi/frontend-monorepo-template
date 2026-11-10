@@ -48,7 +48,10 @@ export function NavUser() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
               <Avatar className="size-8 rounded-lg">
                 <AvatarFallback className="rounded-lg">{user.getInitials() || "?"}</AvatarFallback>
               </Avatar>
@@ -59,10 +62,17 @@ export function NavUser() {
               <ChevronsUpDownIcon className="ms-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="min-w-56 rounded-lg" side={isMobile ? "bottom" : "right"} align="end" sideOffset={4}>
+          <DropdownMenuContent
+            className="min-w-56 rounded-lg"
+            side={isMobile ? "bottom" : "right"}
+            align="end"
+            sideOffset={4}
+          >
             <DropdownMenuLabel className="font-normal">
               <div className="truncate text-sm font-medium">{user.getDisplayName()}</div>
-              <div className="text-muted-foreground truncate text-xs">{user.getRoles().join(", ")}</div>
+              <div className="text-muted-foreground truncate text-xs">
+                {user.getRoles().join(", ")}
+              </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={logout.isPending} onSelect={() => logout.mutate()}>

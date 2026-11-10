@@ -18,15 +18,11 @@ export function defaultMutationErrorText(error: unknown, fallback: string): stri
   return error.message.trim() || fallback;
 }
 
-export type UseMutationOptionsWithToastControl<TData, TError, TVariables, TContext> = UseMutationOptions<
-  TData,
-  TError,
-  TVariables,
-  TContext
-> & {
-  /** Skip the default error toast, when the caller shows its own error UI. A predicate decides per error. */
-  suppressDefaultErrorToast?: boolean | ((error: TError) => boolean);
-};
+export type UseMutationOptionsWithToastControl<TData, TError, TVariables, TContext> =
+  UseMutationOptions<TData, TError, TVariables, TContext> & {
+    /** Skip the default error toast, when the caller shows its own error UI. A predicate decides per error. */
+    suppressDefaultErrorToast?: boolean | ((error: TError) => boolean);
+  };
 
 /**
  * `useMutation` with the workspace defaults: writes are never retried (a
@@ -44,10 +40,13 @@ export function useMutation<TData = unknown, TError = Error, TVariables = void, 
     onError: (error, variables, context, mutation) => {
       options.onError?.(error, variables, context, mutation);
       const suppress =
-        typeof suppressDefaultErrorToast === "function" ? suppressDefaultErrorToast(error) : suppressDefaultErrorToast;
+        typeof suppressDefaultErrorToast === "function"
+          ? suppressDefaultErrorToast(error)
+          : suppressDefaultErrorToast;
       if (suppress) return;
       toast.error(defaultMutationErrorText(error, fallback), {
-        description: error instanceof ApiClientError ? formatApiErrorDescription(error.errors) : undefined,
+        description:
+          error instanceof ApiClientError ? formatApiErrorDescription(error.errors) : undefined,
       });
     },
   });
