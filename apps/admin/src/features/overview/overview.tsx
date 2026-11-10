@@ -1,8 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components";
 import { useCurrentUser } from "@services";
 // example-domain:start
+import { Skeleton } from "@components";
 import { useExamples } from "@services";
 // example-domain:end
 import { PageHeader } from "@/components/page-header";
