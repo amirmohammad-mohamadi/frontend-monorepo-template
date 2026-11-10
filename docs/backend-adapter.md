@@ -22,6 +22,8 @@ configureBackendAdapter({
 });
 ```
 
+Requests are shaped by the transport (`installApiTransport` in each app's `lib/api-client-setup.ts`: base URLs, proxied prefixes, extra headers) and, for the BFF, by `createAuthServer`'s `backend` config (`readAuthPayload`, `readUser`, `refreshBody`, `headers`) and `forwardHeaders` (which request headers the proxy passes on).
+
 Hooks, pages and the generator never change: they consume `NormalizedList<T>`, `ApiErrorDto` and the unwrapped payload.
 
 Unit tests for the default adapter are next to it (`backend-adapter.spec.ts`); add a case there when a new backend shape is supported.

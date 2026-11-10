@@ -274,7 +274,24 @@ Beyond the findings above (M7 tests, M8 duplication, M9 generator, L3 dead code)
 
 Also changed in passing: the home page's placeholder "architecture notes" link (L4) now points at the account page; `docs/auth.md` documents the 200-with-null session answer (L1); `docs/generator.md` describes the removal. `apps/*/AGENTS.md` are files `next dev` 16.4 generates and asks to be committed; they contain Next's own guidance only.
 
-Still open: every Medium and Low finding above.
+## 10. Resolution of Medium findings (applied after approval, same day)
+
+| Finding | What changed | Verification |
+|---|---|---|
+| M1 hooks lint | `eslint-plugin-react-hooks` (rules-of-hooks error, exhaustive-deps warn) and `@next/eslint-plugin-next` recommended rules for `apps/**` added to `eslint.config.mts`; the root not-found page now uses `next/link` | lint passes with zero warnings |
+| M2 CSP | `Content-Security-Policy-Report-Only` on every response of both apps (self + the public API origin for `connect-src`; admin `frame-ancestors 'none'`); HSTS documented as the TLS terminator's job | production builds; header present in e2e-served pages |
+| M3 Secure cookies | Default is now `NODE_ENV === "production"`; `AUTH_COOKIE_SECURE=false` is the plain-http staging opt-out | unit test for the cookie attributes; `.env.example` updated |
+| M4 401 ends session | `authenticatedFetch` reports `sessionLost` only when the refresh token is missing or rejected; a 401 after a successful refresh passes through and keeps the cookies | unit test `does not end the session when the endpoint itself answers 401 after a good refresh` |
+| M5 body caps | Auth routes read at most 64 KiB and the proxy 10 MiB through `readBodyWithCap`, answering 413 before parsing; both configurable | unit tests for 413 on both paths |
+| M6 session schema | `name` and `email` are optional in `sessionUserSchema` | typecheck; the model already tolerated missing values |
+| M7 tests | New suites: `jwt.spec`, `guard.spec`, `create-auth-server.spec` (CSRF, validation, cookies, remember, refresh single flight, proxy allow-list, 204, session loss), `api-client.spec` (transport, unwrap, list, error mapping, network, deadline), `proxy-target.spec`, admin `permissions.spec` | 56 unit tests pass (was 17) |
+| M8 duplication | Lifted into libs: `installApiTransport`/`createApiTransport` and `describeApiError` (`@services`), `FormError` and `ThemeToggle` (`@components`), `consoleErrorReporter` (`@utils`); the per-app copies are deleted | lint, typecheck, e2e |
+| M9 generator | Templates carry JSDoc on every exported symbol, the admin table reads its copy from `apps/admin/src/texts.ts` (the generator appends the section) and formats dates with `ADMIN_LOCALE` from `src/config/locale.ts` | generator run in a temp copy, then lint, typecheck, Prettier check and admin build |
+| M10 server transport | `apps/*/src/instrumentation.ts` installs the transport at server start, so route handlers and server components can call `apiClient` without the client bundle having loaded the setup module | typecheck; builds |
+| M11 dependencies | `zustand` and `@nx/eslint-plugin` removed; the two lint plugins added | install, lint |
+| M12 remember | A boolean `remember: false` in a sign-in body writes browser-session cookies (no `Max-Age`); strategies can decide with `persistent` | unit test `writes session cookies without Max-Age when remember is false` |
+
+Still open: the Low findings.
 
 ## 8. Recommended order of work (for approval, nothing applied)
 
