@@ -1,7 +1,7 @@
 import { consoleErrorReporter, setErrorReporter, type ErrorReporter } from "@utils";
 
 /**
- * The observability integration point. The starter ships no vendor: until a
+ * The observability integration point. The template ships no vendor: until a
  * reporter is installed, `captureError` calls are dropped (the last 30 are
  * replayed once one arrives). To add a vendor, install its SDK, initialise
  * it here (or in `instrumentation-client.ts`) and adapt it to `ErrorReporter`:

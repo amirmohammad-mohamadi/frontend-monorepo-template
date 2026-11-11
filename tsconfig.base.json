@@ -16,7 +16,7 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["@starter/source"],
+    "customConditions": ["@frontend-monorepo-template/source"],
     "baseUrl": ".",
     "paths": {
       "@utils": ["libs/utils/src/index.ts"],

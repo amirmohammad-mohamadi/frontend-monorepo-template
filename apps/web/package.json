@@ -1,5 +1,5 @@
 {
-  "name": "@starter/web",
+  "name": "@frontend-monorepo-template/web",
   "version": "0.1.0",
   "private": true,
   "nx": {

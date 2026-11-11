@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "Starter",
+    "appName": "Template",
     "loading": "Loading…",
     "retry": "Try again",
     "save": "Save",
@@ -95,6 +95,6 @@
     "goHome": "Go to the home page"
   },
   "footer": {
-    "copyright": "© {year} {appName}. Built with the frontend starter."
+    "copyright": "© {year} {appName}. Built with the frontend monorepo template."
   }
 }

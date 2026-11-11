@@ -1,4 +1,4 @@
-# Frontend Starter
+# Frontend Monorepo Template
 
 A production-ready foundation for Next.js projects: a public web app and an admin app in one Nx workspace, sharing typed libraries, with authentication, localisation (including right-to-left), theming, a backend-agnostic services layer and a domain generator. No business domain is included; the `example` domain exists only to prove every layer and is removed with one command.
 

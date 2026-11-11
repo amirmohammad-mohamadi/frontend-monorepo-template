@@ -1,7 +1,7 @@
 /**
  * Route-level access. Maps an admin path prefix to the permission names (any
  * of) an operator needs to see it in navigation and open it. An empty map
- * means every signed-in operator sees everything, which is the starter's
+ * means every signed-in operator sees everything, which is the template's
  * default; a project fills it in as its backend's permission names become known.
  *
  * Example:

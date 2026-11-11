@@ -4,7 +4,7 @@
  * Application code calls `captureError` and `setErrorReportingUser`. A
  * project plugs its tracking vendor in once with `setErrorReporter` (for
  * example in an `instrumentation-client.ts` or an `instrumentation.ts`).
- * Without a reporter every call is a no-op, so the starter runs with no
+ * Without a reporter every call is a no-op, so the template runs with no
  * vendor dependency and nothing to configure.
  */
 
