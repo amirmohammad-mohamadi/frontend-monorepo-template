@@ -1,6 +1,10 @@
 # Working in this repository
 
-This file is the canon for people and coding agents alike. `CLAUDE.md` includes it.
+This file is the canon for people and coding agents alike. `CLAUDE.md` includes it. Stack-wide
+rules (layers, services and data, components, pages, forms, i18n and RTL, e2e, mock API, git
+workflow, coding style, secrets, quality gates) live in `.claude/rules/` and load automatically
+in Claude Code; any other tool can read them as plain Markdown. This file holds only what is
+specific to this repository.
 
 ## Shape
 
@@ -21,18 +25,13 @@ backend → libs/services (apiClient → <domain>.api.ts → <domain>.hooks.ts) 
 
 ESLint enforces these edges (`no-restricted-imports` blocks in `eslint.config.mts`). Import from a lib root alias (`@services`, `@components`, …), never a deep path. The one sanctioned deep import is `@services/auth/server`, which holds server-only code and must stay out of the `@services` barrel.
 
-## Rules
+## Specific to this repository
 
-- **HTTP only in `*.api.ts`.** Apps and components never call `fetch` or `apiClient`; they call hooks from `@services`.
-- **Endpoints live in `libs/services/src/lib/shared/endpoints.ts`**, grouped by domain.
-- **Backend shapes live in the adapter** (`backend-adapter.ts`). Everything above it sees frontend shapes only.
-- **Zod at every boundary**: form submit and request bodies validate with a `@dtos` schema; types are inferred, never hand-written twice.
-- **Named exports, `type` over `interface`, JSDoc on every exported function.**
-- **No `console.*` in shipped code**; report through `captureError` (`@utils`) and show failures through toasts or inline error states.
-- **Every page that fetches renders loading, error and empty states.** Route-level `loading.tsx` and `error.tsx` exist in both apps.
+- **Endpoints live in `libs/services/src/lib/shared/endpoints.ts`**, grouped by domain; backend shapes stop in `backend-adapter.ts`.
+- **Errors go through `captureError` (`@utils`)** and reach the user through toasts or inline error states.
+- **Route-level `loading.tsx` and `error.tsx` exist in both apps.** A new fetching route inherits them unless it needs its own.
 - **Web app strings go through `t()`** (next-intl, `apps/web/messages/*.json`). **Admin strings live in `apps/admin/src/texts.ts`.**
-- **Logical CSS only** (`ms-*`, `pe-*`, `start-*`, `text-end`), so right-to-left works without overrides.
-- **Environment through `env.ts`** in each app (validated with `createEnv`); never scattered `process.env` reads. `NEXT_PUBLIC_*` only for truly public values.
+- **Environment through `env.ts`** in each app (validated with `createEnv`).
 - **No vendor lock-in in the base**: error tracking is an interface (`setErrorReporter`), analytics and maps are left to the project.
 - **Sessions are httpOnly cookies managed by the BFF routes** (`createAuthServer`). Client code never sees a token.
 
@@ -40,7 +39,7 @@ ESLint enforces these edges (`no-restricted-imports` blocks in `eslint.config.mt
 
 ```bash
 npm run dev            # mock API + both apps
-npm run check          # lint + tools lint + typecheck + unit tests + word gate + format check (run before committing)
+npm run check          # Claude config check + lint + tools lint + typecheck + unit tests + word gate + format check (run before committing)
 npm run e2e            # Playwright smoke tests
 npm run generate:domain -- <name>   # scaffold a domain
 npm run example:remove              # drop the reference domain
@@ -56,11 +55,11 @@ Both apps are thin: the transport comes from `installApiTransport` (`@services`)
 
 ## Adding things
 
-- **A domain**: `npm run generate:domain -- <name>`, then fill the DTO fields, the model getters and the admin table columns. Read the `example` domain for the finished shape.
+- **A domain**: `npm run generate:domain -- <name>`, then fill the DTO fields, the model getters and the admin table columns. Read the `example` domain for the finished shape. `/add-domain` walks the same steps.
 - **A locale**: add the code to `apps/web/src/i18n/locales.ts` and a `messages/<code>.json`. Direction is derived from the language.
 - **An auth strategy**: add a DTO schema, then a route under `app/api/auth/<strategy>/route.ts` that exports `authServer.credentialHandler({ schema, path })`. See `docs/auth.md`.
 - **A UI primitive**: `npx shadcn@latest add <name>` with `components.json` in the app, then move the file into `libs/components/src/lib/ui` and export it from the index.
 
 ## Commits
 
-One-line imperative messages. No attribution trailers, no generated-with lines. Run `npm run check` first.
+`.claude/rules/general/git-workflow.md` is the rule; `/check`, `/checkpoint`, `/publish` and `/sync` apply it. The default branch is the working branch of this template; projects made from it decide their own branching.
