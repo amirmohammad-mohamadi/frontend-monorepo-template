@@ -11,6 +11,8 @@
  *   ask   amends, hard resets, discarding the working tree, force branch deletion, stash drops,
  *         publishing a package, deleting or archiving a repository.
  *
+ * A command line is split on `&&`, `||`, `;` and `|` and every simple command is judged on its
+ * own, so two commits chained on one line are two one-line messages, not one multi-line one.
  * Quoted strings are blanked before the destructive-command checks, so a commit message that
  * mentions `--no-verify` is not refused. The hook inspects text only; it cannot see what a
  * script file does.
@@ -23,14 +25,31 @@ const ATTRIBUTION = new RegExp(["co-authored", "-by", "|generated[- ]with|🤖"]
 const GIT_RULE = "rules/general/git-workflow.md";
 const SECRETS_RULE = "rules/general/secrets-and-environment.md";
 
-/** Splits a command line on `&&`, `||`, `;` and `|` so each simple command is judged alone. */
-const segments = (cmd) => cmd.split(/\s*(?:&&|\|\||;|\|)\s*/);
 /** Blanks the inside of quoted strings so flags inside messages or file names are ignored. */
 const blankQuotes = (cmd) =>
   cmd.replace(
     /"(?:\\.|[^"\\])*"|'[^']*'/g,
     (m) => m[0] + " ".repeat(Math.max(0, m.length - 2)) + m[0]
   );
+
+/**
+ * Splits a command line on `&&`, `||`, `;` and `|` found outside quotes. Returns pairs of the
+ * blanked segment (for flag checks) and the original segment (for reading message text).
+ */
+function splitSegments(command) {
+  const blanked = blankQuotes(command);
+  const separator = /\s*(?:&&|\|\||;|\|)\s*/g;
+  const pairs = [];
+  let last = 0;
+  let m;
+  while ((m = separator.exec(blanked))) {
+    pairs.push([blanked.slice(last, m.index), command.slice(last, m.index)]);
+    last = m.index + m[0].length;
+  }
+  pairs.push([blanked.slice(last), command.slice(last)]);
+  return pairs;
+}
+
 /** True when `re` appears as a whole flag token in the segment. */
 const hasFlag = (seg, re) => new RegExp(`(?:^|\\s)${re.source}(?=\\s|$)`).test(seg);
 /** Matches `git <sub>`, allowing global options such as `-c key=value` or `-C dir` before the subcommand. */
@@ -80,13 +99,15 @@ function readsSecretFile(seg) {
     );
 }
 
-/** Returns the reason a `git commit` segment is refused, or null. Reads messages from the original text. */
+/** Returns the reason a `git commit` segment is refused, or null. Reads messages from the original segment. */
 function commitMessageIssues(seg, original) {
   if (!gitCmd("commit").test(seg)) return null;
-  if (hasFlag(seg, /--no-verify|-n/) || /-c\s+core\.hooksPath=/i.test(seg))
+  if (hasFlag(seg, /--no-verify|-n/) || /-c\s+core\.hooksPath=/i.test(seg)) {
     return `hook bypass on commit. ${GIT_RULE}: never bypass hooks.`;
-  if (hasFlag(seg, /-F|--file(?:=\S+)?/))
+  }
+  if (hasFlag(seg, /-F|--file(?:=\S+)?/)) {
     return `commit message from a file. ${GIT_RULE}: one line, written inline with -m.`;
+  }
   const messages = [];
   const re = /(?:^|\s)(?:-[a-zA-Z]*m|--message)(?:=|\s*)(?:"((?:\\.|[^"\\])*)"|'([^']*)'|(\S+))/g;
   for (const m of original.matchAll(re))
@@ -102,8 +123,9 @@ function commitMessageIssues(seg, original) {
   if (messages.length > 1)
     return `multi-line commit message (several -m). ${GIT_RULE}: one line, no body.`;
   const text = messages[0];
-  if (ATTRIBUTION.test(text))
+  if (ATTRIBUTION.test(text)) {
     return `attribution in a commit message. ${GIT_RULE}: no co-author trailers, no generated-with lines, no tool names.`;
+  }
   if (/\n\s*\S/.test(text)) return `multi-line commit message. ${GIT_RULE}: one line, no body.`;
   if (/\.\s*$/.test(text))
     return `commit message ends with a period. ${GIT_RULE}: one line, no trailing period.`;
@@ -180,13 +202,15 @@ guard(() => {
   const command = String(payload.tool_input?.command ?? "");
   if (!command) return;
 
-  const parts = segments(blankQuotes(command));
-  for (const seg of parts)
-    for (const [test, why] of DENY) if (test(seg, command)) decide("deny", `Refused: ${why}`);
-  for (const seg of parts) {
-    const issue = commitMessageIssues(seg, command);
+  const segments = splitSegments(command);
+  for (const [seg, orig] of segments) {
+    for (const [test, why] of DENY) if (test(seg, orig)) decide("deny", `Refused: ${why}`);
+  }
+  for (const [seg, orig] of segments) {
+    const issue = commitMessageIssues(seg, orig);
     if (issue) decide("deny", `Refused: ${issue}`);
   }
-  for (const seg of parts)
+  for (const [seg] of segments) {
     for (const [test, why] of ASK) if (test(seg)) decide("ask", `Confirm: ${why}`);
+  }
 });
